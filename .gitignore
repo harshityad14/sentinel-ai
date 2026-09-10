@@ -83,3 +83,8 @@ Desktop.ini
 # Logs
 logs/
 *.log
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3

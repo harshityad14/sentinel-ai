@@ -12,7 +12,12 @@ dependencies = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.28.0",
     "pydantic-settings>=2.2.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.13.0",
     "sentinel-models",
+    "sentinel-features",
+    "sentinel-detection",
+    "sentinel-correlation",
 ]
 
 [tool.setuptools.packages.find]

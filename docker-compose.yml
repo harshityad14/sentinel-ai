@@ -6,6 +6,24 @@ version: "3.8"
 # enabled in their corresponding implementation phases.
 
 services:
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: sentinel-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=sentinel_db
+      - POSTGRES_USER=sentinel
+      - POSTGRES_PASSWORD=sentinel_dev_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinel -d sentinel_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: .
@@ -16,28 +34,13 @@ services:
     environment:
       - SENTINEL_ENV=development
       - LOG_LEVEL=DEBUG
+      - DATABASE_URL=postgresql://sentinel:sentinel_dev_password@postgres:5432/sentinel_db
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
       - ./apps/api:/workspace/apps/api
       - ./packages:/workspace/packages
-    profiles:
-      - dev-api
 
-  web:
-    build:
-      context: ./apps/web
-      dockerfile: Dockerfile
-    container_name: sentinel-web
-    ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_BASE_URL=http://localhost:8000
-    volumes:
-      - ./apps/web:/app
-      - /app/node_modules
-    profiles:
-      - dev-web
-
-  # Future Infrastructure (Planned for subsequent phases):
-  # - Phase 5: PostgreSQL / TimescaleDB (Threat & Alert Store)
-  # - Phase 6: Apache Kafka + Zookeeper / KRaft (Distributed Real-Time Streaming)
-  # - Phase 6: Redis (WebSocket state & fast telemetry cache)
+volumes:
+  postgres_data:
