@@ -24,10 +24,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pydantic>=2.5.0 scapy>=2.5.0 scikit-learn>=1.4.0
+          pip install pydantic>=2.5.0 scapy>=2.5.0 scikit-learn>=1.4.0 confluent-kafka>=2.3.0
 
       - name: Run Unit Tests
         env:
-          PYTHONPATH: packages/models:packages/ingestion:packages/flow_engine:packages/features:packages/detection:packages/ai_agent:apps/api:tests
+          PYTHONPATH: packages/models:packages/ingestion:packages/flow_engine:packages/features:packages/detection:packages/ai_agent:packages/streaming:apps/api:tests
         run: |
           python -m unittest discover -s tests/unit
