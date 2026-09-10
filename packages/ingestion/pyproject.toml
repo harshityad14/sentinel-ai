@@ -10,7 +10,11 @@ authors = [{ name = "SentinelAI Team" }]
 requires-python = ">=3.11"
 dependencies = [
     "sentinel-models",
+    "scapy>=2.5.0",
 ]
+
+[project.scripts]
+sentinel-ingest = "sentinel_ingestion.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

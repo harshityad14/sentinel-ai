@@ -1,5 +1,17 @@
-"""Supervised machine learning classifiers.
+"""Supervised machine learning detection modules."""
 
-Target implementations (Phase 3):
-- encrypted_flow_classifier.py (JA3/JA4 fingerprint matching & SPLT sequence inference)
-"""
+from sentinel_detection.ml.model_metadata import MLModelMetadata
+from sentinel_detection.ml.random_forest_detector import RandomForestMLDetector
+from sentinel_detection.ml.trainer import (
+    CANONICAL_ML_FEATURES,
+    create_deterministic_baseline_model,
+    save_model_artifacts,
+)
+
+__all__ = [
+    "MLModelMetadata",
+    "RandomForestMLDetector",
+    "CANONICAL_ML_FEATURES",
+    "create_deterministic_baseline_model",
+    "save_model_artifacts",
+]

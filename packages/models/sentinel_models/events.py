@@ -64,7 +64,8 @@ class FlowRecord(BaseModel):
     """Stateful bi-directional 5-tuple network flow session."""
     flow_id: str = Field(..., description="Canonical deterministic flow identifier")
     start_time: datetime = Field(..., description="Timestamp of the first observed packet")
-    last_seen_time: datetime = Field(..., description="Timestamp of the most recent packet")
+    last_seen_time: Optional[datetime] = Field(default=None, description="Timestamp of the most recent packet")
+    end_time: Optional[datetime] = Field(default=None, description="Timestamp of the last observed packet")
     duration_sec: float = Field(default=0.0, ge=0.0, description="Total flow duration in seconds")
     
     # 5-tuple endpoint parameters
@@ -74,11 +75,24 @@ class FlowRecord(BaseModel):
     destination_port: Optional[int] = Field(default=None, ge=0, le=65535)
     protocol: ProtocolType = Field(...)
     
-    # Bi-directional volumetric metrics
+    # Volumetric metrics
+    total_packets: int = Field(default=0, ge=0, description="Total packet count in both directions")
     forward_packets: int = Field(default=0, ge=0, description="Packets sent by originator")
     backward_packets: int = Field(default=0, ge=0, description="Packets sent by responder")
+    total_bytes: int = Field(default=0, ge=0, description="Total byte count in both directions")
     forward_bytes: int = Field(default=0, ge=0, description="Bytes sent by originator")
     backward_bytes: int = Field(default=0, ge=0, description="Bytes sent by responder")
+
+    # Packet size distribution statistics
+    min_packet_size: int = Field(default=0, ge=0, description="Minimum packet wire length in bytes")
+    max_packet_size: int = Field(default=0, ge=0, description="Maximum packet wire length in bytes")
+    mean_packet_size: float = Field(default=0.0, ge=0.0, description="Mean packet wire length in bytes")
+    std_packet_size: float = Field(default=0.0, ge=0.0, description="Packet size standard deviation")
+
+    # TCP flag counters
+    tcp_flags: Dict[str, int] = Field(
+        default_factory=dict, description="Aggregated counts of TCP flags observed (syn, ack, fin, rst, etc.)"
+    )
     
     # Connection state
     is_active: bool = Field(default=True, description="Whether the flow is currently active")
@@ -90,3 +104,22 @@ class FlowRecord(BaseModel):
     
     # Statistical feature payload (populated in Phase 2)
     features: Dict[str, Any] = Field(default_factory=dict, description="Extracted feature vector")
+
+    def model_post_init(self, __context: Any) -> None:
+        """Synchronize last_seen_time and end_time, and totals if not explicitly provided."""
+        if self.end_time is None and self.last_seen_time is not None:
+            self.end_time = self.last_seen_time
+        elif self.last_seen_time is None and self.end_time is not None:
+            self.last_seen_time = self.end_time
+        elif self.end_time is None and self.last_seen_time is None:
+            self.end_time = self.start_time
+            self.last_seen_time = self.start_time
+
+        if self.total_packets == 0 and (self.forward_packets > 0 or self.backward_packets > 0):
+            self.total_packets = self.forward_packets + self.backward_packets
+        if self.total_bytes == 0 and (self.forward_bytes > 0 or self.backward_bytes > 0):
+            self.total_bytes = self.forward_bytes + self.backward_bytes
+
+    def to_jsonl(self) -> str:
+        """Serialize FlowRecord to a deterministic, single-line JSON string."""
+        return self.model_dump_json()

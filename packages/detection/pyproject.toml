@@ -10,6 +10,8 @@ authors = [{ name = "SentinelAI Team" }]
 requires-python = ">=3.11"
 dependencies = [
     "sentinel-models",
+    "sentinel-features",
+    "scikit-learn>=1.4.0",
 ]
 
 [tool.setuptools.packages.find]

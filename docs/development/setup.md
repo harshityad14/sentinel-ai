@@ -1,20 +1,19 @@
 # SentinelAI — Developer Environment Setup Guide
 
-This guide describes how to configure your local development environment for **SentinelAI** across Phase 0 and subsequent phases.
+This guide describes how to configure your local development environment for **SentinelAI** and execute the Phase 1 ingestion and flow engine pipeline.
 
 ---
 
 ## 1. Prerequisites
 
-Ensure the following tools are installed on your machine:
+Ensure the following tools are installed:
 - **Python:** 3.11 or higher (`python --version`)
-- **Node.js:** 20 LTS or higher (`node --version`)
 - **Git:** 2.35 or higher (`git --version`)
-- **Docker & Docker Compose:** Optional for Phase 0, recommended for containerized testing (`docker --version`)
+- **Pip:** Standard package manager
 
 ---
 
-## 2. Repository Cloning & Python Virtual Environment
+## 2. Repository Setup & Virtual Environment
 
 1. Clone the repository:
    ```bash
@@ -22,7 +21,7 @@ Ensure the following tools are installed on your machine:
    cd sentinel-ai
    ```
 
-2. Create and activate a Python virtual environment:
+2. Activate virtual environment:
    ```bash
    # Windows (PowerShell)
    python -m venv .venv
@@ -33,66 +32,101 @@ Ensure the following tools are installed on your machine:
    source .venv/bin/activate
    ```
 
-3. Upgrade pip and build tools:
+3. Install required dependencies:
    ```bash
-   pip install --upgrade pip setuptools wheel
+   pip install pydantic>=2.5.0 scapy>=2.5.0
+   ```
+
+4. Install packages in editable mode:
+   ```bash
+   pip install -e packages/models
+   pip install -e packages/ingestion
+   pip install -e packages/flow_engine
+   pip install -e packages/features
+   pip install -e packages/detection
+   pip install -e packages/ai_agent
    ```
 
 ---
 
-## 3. Package Installation (Editable Mode)
+## 3. Running Phase 1 CLI (`sentinel-ingest`)
 
-SentinelAI uses a modular package structure. In Phase 0, install the packages in editable mode (`-e`) so that local changes are reflected immediately without re-installing:
+SentinelAI provides a high-performance, strictly passive CLI for reading PCAP/PCAPNG files and extracting bidirectional flow records into JSONL.
 
+### Basic Usage
 ```bash
-# Core Domain Models
-pip install -e packages/models
+# Output flows to standard output
+python -m sentinel_ingestion.cli -i sample.pcap
 
-# Modular System Packages
-pip install -e packages/ingestion
-pip install -e packages/flow_engine
-pip install -e packages/features
-pip install -e packages/detection
-pip install -e packages/ai_agent
+# Write flows to a JSONL file
+python -m sentinel_ingestion.cli -i sample.pcap -o flows.jsonl
+
+# Configure custom inactivity timeout (e.g., 60 seconds)
+python -m sentinel_ingestion.cli -i sample.pcap -o flows.jsonl --timeout 60.0
+```
+
+If packages were installed via `pip install -e packages/ingestion`, the console script is directly available:
+```bash
+sentinel-ingest sample.pcap -o flows.jsonl
+```
+
+### CLI Arguments
+| Flag | Long Flag | Description | Default |
+| :--- | :--- | :--- | :--- |
+| `-i` | `--input` | Path to input `.pcap` or `.pcapng` file | Required |
+| `-o` | `--output` | Destination file for JSONL output | `stdout` |
+| `-t` | `--timeout`| Flow inactivity timeout in seconds | `30.0` |
+| `-f` | `--format` | Output format (`jsonl`) | `jsonl` |
+
+---
+
+## 4. Running Tests
+
+Run all unit tests across models, ingestion, flow engine, and CLI:
+```bash
+# Windows (PowerShell)
+$env:PYTHONPATH="packages/models;packages/ingestion;packages/flow_engine;packages/features;packages/detection;packages/ai_agent;tests"
+python -m unittest discover -s tests/unit -v
+
+# Linux / macOS
+PYTHONPATH="packages/models:packages/ingestion:packages/flow_engine:packages/features:packages/detection:packages/ai_agent:tests" python -m unittest discover -s tests/unit -v
 ```
 
 ---
 
-## 4. Environment Configuration
+## 5. Running the Phase 1 Performance Baseline
 
-1. Copy the template configuration:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Inspect `.env` and configure settings as desired. The defaults are pre-configured for standalone local development.
-
----
-
-## 5. Verification & Testing
-
-Run the Phase 0 sanity test suite to verify that all packages and models instantiate cleanly:
-
+Execute the synthetic baseline benchmark tool:
 ```bash
-python -m unittest discover -s tests/unit
+# Windows (PowerShell)
+$env:PYTHONPATH="packages/models;packages/ingestion;packages/flow_engine;packages/features;packages/detection;packages/ai_agent;tests"
+python tests/benchmarks/benchmark_ingestion.py -n 5000 -f 250
+
+# Linux / macOS
+PYTHONPATH="packages/models:packages/ingestion:packages/flow_engine:packages/features:packages/detection:packages/ai_agent:tests" python tests/benchmarks/benchmark_ingestion.py -n 5000 -f 250
 ```
 
 Expected output:
-```
-...
-----------------------------------------------------------------------
-Ran 2 tests in 0.05s
-
-OK
+```text
+=======================================================
+ SentinelAI Phase 1 Performance Baseline Benchmark
+ Workload: 5000 packets across 250 bidirectional flows
+=======================================================
+Results:
+  - Packets Processed:        5,000
+  - Bidirectional Flows:      250
+  - Execution Time:           ~2.2s
+  - Ingestion Throughput:     ~2,200 packets/sec
+  - Flow Processing Rate:     ~110 flows/sec
+=======================================================
 ```
 
 ---
 
-## 6. Docker Development (Optional)
+## 6. Passive-Security Invariant Verification
 
-In Phase 0, Docker Compose is a lightweight placeholder. No heavy infrastructure (Kafka, PostgreSQL, Redis) is required to run Phase 0.
-
-To inspect the development compose configuration:
-```bash
-docker compose config
-```
+SentinelAI operates strictly passively:
+- No network sockets are opened for transmitting data (`socket.send()`).
+- No packets are sent to monitored hosts.
+- Captured files are opened strictly in read-only mode (`rb`).
+- Payloads are never decrypted.

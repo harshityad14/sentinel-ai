@@ -1,6 +1,7 @@
-"""Alert correlation, deduplication, and attack graph linking modules.
+"""SentinelAI correlation and ensemble detection engine."""
 
-Target implementations (Phase 4):
-- alert_deduplicator.py (sliding-window deduplication)
-- attack_chain_correlator.py (MITRE kill chain event linking)
-"""
+from sentinel_detection.correlation.ensemble import EnsembleCorrelationEngine
+
+__all__ = [
+    "EnsembleCorrelationEngine",
+]

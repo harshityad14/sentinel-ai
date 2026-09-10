@@ -1,5 +1,11 @@
-"""Multi-factor risk scoring engine.
+"""SentinelAI scoring and severity policies."""
 
-Target implementations (Phase 4):
-- risk_calculator.py (composite 0 - 100 risk score weighting confidence, severity, and asset criticality)
-"""
+from sentinel_detection.scoring.severity_policy import (
+    BASELINE_SEVERITY,
+    evaluate_severity,
+)
+
+__all__ = [
+    "BASELINE_SEVERITY",
+    "evaluate_severity",
+]

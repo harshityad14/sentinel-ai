@@ -21,6 +21,24 @@ from sentinel_models.metrics import (
     IngestionMetrics,
     TelemetrySnapshot,
 )
+from sentinel_models.features import (
+    DNSFeatures,
+    FeatureDataType,
+    FeatureStatus,
+    FeatureVector,
+    NetworkFeatures,
+    TCPFeatures,
+    TLSFeatures,
+    TimingFeatures,
+)
+from sentinel_models.detection import (
+    DetectionEvidence,
+    DetectionResult,
+    DetectionSeverity,
+    DetectionSignal,
+    DetectorType,
+    ThreatType,
+)
 
 __all__ = [
     "DNSMetadata",
@@ -38,4 +56,18 @@ __all__ = [
     "FlowMetrics",
     "IngestionMetrics",
     "TelemetrySnapshot",
+    "DNSFeatures",
+    "FeatureDataType",
+    "FeatureStatus",
+    "FeatureVector",
+    "NetworkFeatures",
+    "TCPFeatures",
+    "TLSFeatures",
+    "TimingFeatures",
+    "DetectionEvidence",
+    "DetectionResult",
+    "DetectionSeverity",
+    "DetectionSignal",
+    "DetectorType",
+    "ThreatType",
 ]
