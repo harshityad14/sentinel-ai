@@ -10,9 +10,16 @@ from sentinel_models.events import (
 )
 from sentinel_models.alerts import (
     Alert,
+    AlertEntity,
+    AlertEntityType,
     AlertEvidence,
     AlertSeverity,
+    AlertSignal,
+    AlertStatus,
+    CorrelationGroup,
     MitreAttackRef,
+    RiskScore,
+    SecurityAlert,
     ThreatCategory,
 )
 from sentinel_models.metrics import (
@@ -48,8 +55,15 @@ __all__ = [
     "TCPFlags",
     "TLSMetadata",
     "Alert",
-    "AlertEvidence",
+    "SecurityAlert",
+    "AlertStatus",
     "AlertSeverity",
+    "AlertEntity",
+    "AlertEntityType",
+    "AlertSignal",
+    "AlertEvidence",
+    "RiskScore",
+    "CorrelationGroup",
     "MitreAttackRef",
     "ThreatCategory",
     "DetectionLatencyMetrics",

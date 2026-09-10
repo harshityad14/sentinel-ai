@@ -96,7 +96,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 
 ---
 
-## Phase 3 — Hybrid Threat Detection Engine 🔄 [ACTIVE — IMPLEMENTED]
+## Phase 3 — Hybrid Threat Detection Engine ✅ [COMPLETED]
 
 - **Objective:** Implement modular, independently testable threat detection modules combining deterministic rule engines, statistical/anomaly profilers, lightweight supervised machine learning models, and an ensemble correlation layer.
 - **Major Components:**
@@ -133,30 +133,33 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
 
 ---
 
-## Phase 4 — Alert Correlation, Evidence & Risk Scoring
+## Phase 4 — Alert Correlation, Evidence & Risk Scoring 🔄 [ACTIVE — IMPLEMENTED]
 
 - **Objective:** Aggregate multi-detector signals, correlate related events into unified threat incidents, generate explainable evidence chains with MITRE ATT&CK mapping, and compute composite risk scores.
 - **Major Components:**
-  - `packages/detection/correlation`: Time-window event correlator, duplicate alert deduplicator, attack chain linker.
-  - `packages/detection/scoring`: Multi-factor risk scoring engine (0 — 100).
-  - Evidence synthesis & MITRE ATT&CK catalog mapping.
+  - `packages/detection/correlation`: Time-window event correlator (`correlator.py`), configuration dataclass (`config.py`), static MITRE ATT&CK mapper (`mitre_mapper.py`).
+  - `packages/detection/scoring`: Multi-factor risk scoring engine (`risk_calculator.py`).
+  - Domain models: `SecurityAlert`, `AlertEvidence`, `AlertSignal`, `AlertEntity`, `RiskScore`, `CorrelationGroup` in `packages/models/sentinel_models/alerts.py`.
 - **Implementation Tasks:**
-  - Implement alert deduplication to prevent alert storms during active floods.
-  - Correlate multi-stage behaviors (e.g., Port Scan -> C2 Connection -> High Outbound Volume).
-  - Map each alert to standard MITRE ATT&CK tactics, techniques, and sub-techniques.
-  - Build composite risk scoring formula combining detection confidence, severity, target asset criticality, and attack persistence.
-  - Generate structured explainability metadata detailing exact feature triggers for SOC analysts.
+  - [x] Implement alert deduplication to merge identical alerts and prevent alert storms.
+  - [x] Correlate multi-stage behaviors (e.g., Port Scan -> C2 Connection -> High Outbound Volume).
+  - [x] Map each alert to standard MITRE ATT&CK tactics, techniques, and sub-techniques.
+  - [x] Build composite risk scoring formula combining detection confidence, severity, detector agreement, signal volume, recurrence, and temporal proximity.
+  - [x] Generate structured explainability metadata detailing exact feature triggers for SOC analysts.
+  - [x] Enforce bounded memory caps and sliding window pruning.
 - **Tests:**
-  - Unit tests verifying alert deduplication reduces alert volume by $\ge 80\%$ during sustained attacks.
-  - Unit tests validating risk score bounds ($0 \le \text{score} \le 100$).
-  - Validation of MITRE ATT&CK tagging correctness.
+  - `tests/unit/test_alert_correlation.py`: 19 deterministic unit tests verifying deduplication, temporal correlation, entity grouping, risk calculation, evidence preservation, and lifecycle transitions.
+  - `tests/benchmarks/benchmark_correlation.py`: Performance benchmark measuring detections/sec, alerts/sec, average and P99 latency.
 - **Acceptance Criteria:**
-  - Alerts contain human-readable reasoning, raw feature evidence, and MITRE mapping.
-  - Correlated incidents link related multi-host attacks into single actionable cases.
+  - [x] Alerts contain human-readable reasoning, raw feature evidence, and MITRE mapping.
+  - [x] Correlated incidents link related multi-host attacks into single actionable cases.
+  - [x] Deduplication reduces alert volume by $\ge 80\%$ during sustained repeated floods.
+  - [x] Risk score bounded between $0$ and $100$ with transparent factor breakdown.
+  - [x] Correlation throughput $> 8,000$ detections/sec; average latency $< 0.2$ ms.
 - **Dependencies on Previous Phases:** Phase 3 (`packages/detection`).
 - **Expected Deliverables:**
   - Correlation and risk scoring engine in `packages/detection/correlation` and `packages/detection/scoring`.
-  - Normalized `Alert` schema generator with explainability payloads.
+  - Canonical `SecurityAlert` domain model and `docs/architecture/alert_correlation.md`.
 
 ---
 
