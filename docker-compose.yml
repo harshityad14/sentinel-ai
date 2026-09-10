@@ -1,0 +1,43 @@
+version: "3.8"
+
+# SentinelAI — Minimal Development Compose Placeholder
+# Note: In Phase 0, heavy infrastructure (Kafka, PostgreSQL, TimescaleDB, Redis)
+# is intentionally deferred and not required to run. Services will be incrementally
+# enabled in their corresponding implementation phases.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: sentinel-api
+    ports:
+      - "8000:8000"
+    environment:
+      - SENTINEL_ENV=development
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./apps/api:/workspace/apps/api
+      - ./packages:/workspace/packages
+    profiles:
+      - dev-api
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: sentinel-web
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+    profiles:
+      - dev-web
+
+  # Future Infrastructure (Planned for subsequent phases):
+  # - Phase 5: PostgreSQL / TimescaleDB (Threat & Alert Store)
+  # - Phase 6: Apache Kafka + Zookeeper / KRaft (Distributed Real-Time Streaming)
+  # - Phase 6: Redis (WebSocket state & fast telemetry cache)

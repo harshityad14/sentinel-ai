@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentinel-ai-agent"
+version = "0.1.0"
+description = "Advisory GenAI Security Analyst for alert triage and playbook generation in SentinelAI"
+authors = [{ name = "SentinelAI Team" }]
+requires-python = ">=3.11"
+dependencies = [
+    "sentinel-models",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sentinel_ai_agent*"]

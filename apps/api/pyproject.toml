@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentinel-api"
+version = "0.1.0"
+description = "FastAPI backend and WebSocket server for SentinelAI SOC platform"
+authors = [{ name = "SentinelAI Team" }]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "pydantic-settings>=2.2.0",
+    "sentinel-models",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
