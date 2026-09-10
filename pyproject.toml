@@ -9,6 +9,7 @@ pythonpath = [
     "packages/flow_engine",
     "packages/features",
     "packages/detection",
+    "packages/streaming",
     "packages/ai_agent",
     "apps/api",
 ]

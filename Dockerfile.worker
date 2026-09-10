@@ -1,5 +1,5 @@
 # ==============================================================================
-# SentinelAI API — Production Multi-Stage Hardened Dockerfile
+# SentinelAI Streaming Worker — Production Multi-Stage Hardened Dockerfile
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -9,17 +9,14 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
-# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy package definitions and sources
 COPY packages/ /build/packages/
 COPY apps/api/ /build/apps/api/
 
-# Install packages into an isolated directory
 RUN pip install --no-cache-dir --prefix=/install \
     -e /build/packages/models \
     -e /build/packages/ingestion \
@@ -35,36 +32,23 @@ RUN pip install --no-cache-dir --prefix=/install \
 # ------------------------------------------------------------------------------
 FROM python:3.11-slim AS runner
 
-# Install only essential runtime C libraries (libpq for PostgreSQL, curl for healthcheck)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create dedicated non-root application user
-RUN groupadd -g 10001 appuser && \
-    useradd -u 10001 -g 10001 -m -s /bin/false appuser
+# Create dedicated unprivileged worker user
+RUN groupadd -g 10002 workeruser && \
+    useradd -u 10002 -g 10002 -m -s /bin/false workeruser
 
 WORKDIR /workspace
 
-# Copy installed site-packages and binaries from builder
 COPY --from=builder /install /usr/local
 COPY --from=builder /build/packages /workspace/packages
 COPY --from=builder /build/apps/api /workspace/apps/api
 
-# Re-point editable install paths and ensure correct ownership
-RUN chown -R appuser:appuser /workspace
+RUN chown -R workeruser:workeruser /workspace
 
-WORKDIR /workspace/apps/api
+USER 10002:10002
 
-# Drop privileges to non-root user
-USER 10001:10001
-
-EXPOSE 8000
-
-# Health check probe against liveness endpoint
-HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-# Start Uvicorn production server (migrations are handled by the dedicated migration service)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run unified streaming pipeline runner
+CMD ["python", "-m", "sentinel_streaming.runner"]

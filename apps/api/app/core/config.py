@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,6 +25,7 @@ class Settings(BaseSettings):
         alias="DATABASE_URL",
         description="SQLAlchemy database connection URI",
     )
+    postgres_password: Optional[str] = Field(default=None, alias="POSTGRES_PASSWORD")
     db_pool_size: int = Field(default=10, alias="DB_POOL_SIZE")
     db_max_overflow: int = Field(default=20, alias="DB_MAX_OVERFLOW")
     db_pool_recycle: int = Field(default=1800, alias="DB_POOL_RECYCLE")
@@ -45,5 +46,43 @@ class Settings(BaseSettings):
     ai_cache_ttl_seconds: int = Field(default=3600, alias="SENTINEL_AI_CACHE_TTL_SECONDS")
     ai_cache_max_entries: int = Field(default=1000, alias="SENTINEL_AI_CACHE_MAX_ENTRIES")
 
+    @model_validator(mode="after")
+    def validate_production_settings(self):
+        if self.environment.lower() == "production":
+            # 1. POSTGRES_PASSWORD check
+            if not self.postgres_password:
+                raise ValueError("POSTGRES_PASSWORD must be explicitly provided in production mode.")
+            if self.postgres_password == "sentinel_dev_password":
+                raise ValueError(
+                    "Default development password 'sentinel_dev_password' is strictly forbidden in production mode."
+                )
+
+            # 2. DATABASE_URL check
+            if self.database_url.startswith("sqlite"):
+                raise ValueError("SQLite database is not permitted in production mode. Use PostgreSQL.")
+            if "sentinel_dev_password" in self.database_url:
+                raise ValueError(
+                    "Default development password 'sentinel_dev_password' detected in DATABASE_URL in production mode."
+                )
+
+            # 3. trusted_hosts check
+            if not self.trusted_hosts or "*" in self.trusted_hosts:
+                raise ValueError(
+                    "trusted_hosts must be explicitly configured and cannot contain '*' in production mode."
+                )
+
+            # 4. cors_origins check
+            if not self.cors_origins or "*" in self.cors_origins:
+                raise ValueError(
+                    "cors_origins must be explicitly configured and cannot contain '*' in production mode."
+                )
+
+            # 5. AI provider api_key check if non-mock
+            if self.ai_provider != "mock" and not self.ai_api_key:
+                raise ValueError(
+                    f"SENTINEL_AI_API_KEY must be provided for AI provider '{self.ai_provider}' in production mode."
+                )
+
+        return self
 
 settings = Settings()

@@ -1,40 +1,55 @@
 version: "3.8"
 
-# SentinelAI — Real-Time Development Infrastructure
-# PostgreSQL/TimescaleDB persistence and Apache Kafka (KRaft mode) event streaming.
+# ==============================================================================
+# SentinelAI — Hardened Production-Like Docker Compose Stack
+#
+# Services (6 total):
+# - 1 One-Off Task: migration (executes alembic upgrade head, restart: "no")
+# - 5 Long-Running: postgres, kafka, api, web, worker
+#
+# Port Security:
+# - ONLY web (Nginx:8080) exposes a host port.
+# - postgres (5432), kafka (9092), api (8000), and worker are strictly internal.
+# ==============================================================================
 
 services:
   postgres:
     image: timescale/timescaledb:latest-pg16
     container_name: sentinel-postgres
     restart: unless-stopped
-    ports:
-      - "5432:5432"
     environment:
-      - POSTGRES_DB=sentinel_db
-      - POSTGRES_USER=sentinel
-      - POSTGRES_PASSWORD=sentinel_dev_password
+      POSTGRES_DB: ${POSTGRES_DB:-sentinel_db}
+      POSTGRES_USER: ${POSTGRES_USER:-sentinel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be explicitly provided in production}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sentinel -d sentinel_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sentinel} -d ${POSTGRES_DB:-sentinel_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - sentinel-net
 
   kafka:
     image: apache/kafka:3.7.0
     container_name: sentinel-kafka
     restart: unless-stopped
-    ports:
-      - "9092:9092"
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -43,26 +58,127 @@ services:
       KAFKA_NUM_PARTITIONS: 3
     volumes:
       - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - sentinel-net
+
+  # Dedicated one-off schema migration service to prevent multi-container startup race conditions
+  migration:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: sentinel-migration
+    restart: "no"
+    command: ["alembic", "upgrade", "head"]
+    working_dir: /workspace/apps/api
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sentinel}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentinel_db}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sentinel-net
 
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
     container_name: sentinel-api
-    ports:
-      - "8000:8000"
+    restart: unless-stopped
     environment:
-      - SENTINEL_ENV=development
-      - LOG_LEVEL=DEBUG
-      - DATABASE_URL=postgresql://sentinel:sentinel_dev_password@postgres:5432/sentinel_db
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      SENTINEL_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sentinel}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentinel_db}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      CORS_ORIGINS: http://localhost:8080
+      TRUSTED_HOSTS: localhost,127.0.0.1,web,api
+      SENTINEL_AI_PROVIDER: ${SENTINEL_AI_PROVIDER:-mock}
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./apps/api:/workspace/apps/api
-      - ./packages:/workspace/packages
+      kafka:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - sentinel-net
+
+  web:
+    build:
+      context: apps/web
+      dockerfile: Dockerfile
+    container_name: sentinel-web
+    restart: unless-stopped
+    # ONLY service exposing a host port (reverse proxies /api/ and /api/v1/ws/alerts to api:8000)
+    ports:
+      - "8080:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - sentinel-net
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: sentinel-worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sentinel}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentinel_db}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - sentinel-net
 
 volumes:
   postgres_data:
   kafka_data:
+
+networks:
+  sentinel-net:
+    driver: bridge

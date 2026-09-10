@@ -1,0 +1,34 @@
+# ==============================================================================
+# SentinelAI Terraform Reference Variables Template
+# Copy to terraform.tfvars for local testing.
+# NEVER commit terraform.tfvars or real secret values to Git!
+# ==============================================================================
+
+aws_region   = "us-east-1"
+environment  = "production"
+project_name = "sentinel-ai"
+vpc_cidr     = "10.0.0.0/16"
+
+# Compute resources (Fargate task specs)
+api_cpu              = 512
+api_memory           = 1024
+worker_cpu           = 512
+worker_memory        = 1024
+api_desired_count    = 2
+worker_desired_count = 2
+
+# Database configuration
+db_instance_class    = "db.t4g.medium"
+db_allocated_storage = 50
+
+# ECR Container Images
+api_image    = "123456789012.dkr.ecr.us-east-1.amazonaws.com/sentinel-api:v0.5.0"
+web_image    = "123456789012.dkr.ecr.us-east-1.amazonaws.com/sentinel-web:v0.5.0"
+worker_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/sentinel-worker:v0.5.0"
+
+# Secret ARNs (Never store actual passwords or keys in .tfvars!)
+secrets_manager_db_secret_arn = "arn:aws:secretsmanager:us-east-1:123456789012:secret:sentinel/production/db-credentials-aBcDeF"
+secrets_manager_ai_secret_arn = "arn:aws:secretsmanager:us-east-1:123456789012:secret:sentinel/production/ai-key-xYz123"
+
+# Optional ACM Certificate ARN for HTTPS
+ssl_certificate_arn = ""

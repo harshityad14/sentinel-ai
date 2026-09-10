@@ -1,8 +1,9 @@
 """SentinelAI FastAPI application entrypoint and factory."""
 
 import logging
+import time
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -13,7 +14,11 @@ from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine, check_db_health
 from app.api.v1.router import api_v1_router
+from app.middleware.security_headers import SecurityHeadersMiddleware
 import app.models  # Register all models with Base
+
+START_TIME = time.time()
+
 
 # Setup structured backend logging
 logging.basicConfig(
@@ -69,6 +74,9 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Security: Hardened HTTP security headers (CSP, HSTS, frame protection)
+    app.add_middleware(SecurityHeadersMiddleware)
+
     # Security: Trusted host middleware (if configured)
     if settings.trusted_hosts and "*" not in settings.trusted_hosts:
         app.add_middleware(
@@ -116,12 +124,40 @@ def create_app() -> FastAPI:
     # Root health endpoint
     @app.get("/health", tags=["System Health & Status"])
     def root_health():
+        db_healthy = check_db_health(engine)
         return {
-            "status": "healthy",
+            "status": "healthy" if db_healthy else "degraded",
             "service": settings.app_name,
             "version": settings.app_version,
+            "environment": settings.environment,
             "phase": "Phase 5 - Backend & Persistence",
+            "passive_mode": True,
+            "database": "connected" if db_healthy else "disconnected",
         }
+
+    # Prometheus metrics endpoint
+    @app.get("/metrics", tags=["Observability & Metrics"])
+    def prometheus_metrics():
+        uptime = time.time() - START_TIME
+        db_healthy = 1 if check_db_health(engine) else 0
+        metrics = [
+            "# HELP sentinel_api_info Information about SentinelAI API",
+            "# TYPE sentinel_api_info gauge",
+            f'sentinel_api_info{{version="{settings.app_version}",environment="{settings.environment}",passive_mode="true"}} 1',
+            "# HELP sentinel_api_uptime_seconds Time since SentinelAI API process started",
+            "# TYPE sentinel_api_uptime_seconds gauge",
+            f"sentinel_api_uptime_seconds {uptime:.2f}",
+            "# HELP sentinel_database_status Database connectivity status (1=connected, 0=disconnected)",
+            "# TYPE sentinel_database_status gauge",
+            f"sentinel_database_status {db_healthy}",
+            "# HELP sentinel_passive_mode_enforced Passive-only monitoring invariant enforcement",
+            "# TYPE sentinel_passive_mode_enforced gauge",
+            "sentinel_passive_mode_enforced 1",
+        ]
+        return Response(
+            content="\n".join(metrics) + "\n",
+            media_type="text/plain; version=0.0.4; charset=utf-8",
+        )
 
     # Mount v1 endpoints
     app.include_router(api_v1_router, prefix="/api/v1")

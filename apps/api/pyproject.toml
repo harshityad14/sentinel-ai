@@ -18,6 +18,9 @@ dependencies = [
     "sentinel-features",
     "sentinel-detection",
     "sentinel-correlation",
+    "sentinel-streaming",
+    "sentinel-ai-agent",
+    "psycopg2-binary>=2.9.9",
 ]
 
 [tool.setuptools.packages.find]
