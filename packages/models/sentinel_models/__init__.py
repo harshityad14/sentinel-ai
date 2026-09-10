@@ -46,6 +46,17 @@ from sentinel_models.detection import (
     DetectorType,
     ThreatType,
 )
+from sentinel_models.ai_analyst import (
+    AlertAnalysisReport,
+    AnalystQuestionRequest,
+    AnalystQuestionResponse,
+    AttackStageAnalysis,
+    AuditableValidationLog,
+    EvidenceCitation,
+    GroundingStatus,
+    InvestigationStep,
+    UncertaintyIndicator,
+)
 
 __all__ = [
     "DNSMetadata",
@@ -84,4 +95,14 @@ __all__ = [
     "DetectionSignal",
     "DetectorType",
     "ThreatType",
+    "AlertAnalysisReport",
+    "AnalystQuestionRequest",
+    "AnalystQuestionResponse",
+    "AttackStageAnalysis",
+    "AuditableValidationLog",
+    "EvidenceCitation",
+    "GroundingStatus",
+    "InvestigationStep",
+    "UncertaintyIndicator",
 ]
+

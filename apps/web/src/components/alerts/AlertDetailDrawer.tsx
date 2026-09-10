@@ -6,6 +6,8 @@ import { StatusPill } from '../common/StatusPill';
 import { EvidenceViewer } from './EvidenceViewer';
 import { SignalList } from './SignalList';
 import { LifecycleModal } from './LifecycleModal';
+import { AIAnalystPanel } from '../ai/AIAnalystPanel';
+import { Sparkles } from 'lucide-react';
 
 interface AlertDetailDrawerProps {
   alert: SecurityAlertRead | null;
@@ -18,7 +20,7 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
   onClose,
   onUpdateStatus,
 }) => {
-  const [activeTab, setActiveTab] = useState<'details' | 'evidence' | 'signals' | 'audit'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'evidence' | 'signals' | 'audit' | 'ai_analyst'>('details');
   const [isLifecycleModalOpen, setIsLifecycleModalOpen] = useState(false);
 
   if (!alert) return null;
@@ -164,6 +166,25 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
               }}
             >
               Audit Trail
+            </button>
+            <button
+              onClick={() => setActiveTab('ai_analyst')}
+              style={{
+                padding: '0.35rem 0.75rem',
+                fontSize: '0.85rem',
+                borderRadius: '4px',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+                background: activeTab === 'ai_analyst' ? 'rgba(59, 130, 246, 0.25)' : 'rgba(59, 130, 246, 0.08)',
+                color: activeTab === 'ai_analyst' ? '#60a5fa' : '#93c5fd',
+                cursor: 'pointer',
+                fontWeight: activeTab === 'ai_analyst' ? 600 : 500,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+              }}
+            >
+              <Sparkles size={13} />
+              AI Analyst
             </button>
           </div>
 
@@ -349,6 +370,10 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
                 </div>
               )}
             </div>
+          )}
+
+          {activeTab === 'ai_analyst' && (
+            <AIAnalystPanel alertId={alert.alert_id} alert={alert} />
           )}
         </div>
       </div>

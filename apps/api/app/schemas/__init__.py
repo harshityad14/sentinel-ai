@@ -24,6 +24,12 @@ from app.schemas.stats import (
     TelemetrySummaryRead,
     ProcessingStatusRead,
 )
+from app.schemas.ai_analyst import (
+    AlertAnalysisReport,
+    AnalystQuestionRequest,
+    AnalystQuestionResponse,
+    AIHealthResponse,
+)
 
 __all__ = [
     "PaginatedResponse",
@@ -46,4 +52,9 @@ __all__ = [
     "EntityStatisticsItem",
     "TelemetrySummaryRead",
     "ProcessingStatusRead",
+    "AlertAnalysisReport",
+    "AnalystQuestionRequest",
+    "AnalystQuestionResponse",
+    "AIHealthResponse",
 ]
+

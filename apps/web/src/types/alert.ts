@@ -122,6 +122,7 @@ export interface SecurityAlertRead {
   correlation_id?: string;
   assigned_to?: string;
   comments?: Array<{ author: string; timestamp?: string; text: string }>;
+  lifecycle_history?: LifecycleHistoryRead[];
 }
 
 export type DetectionSignal = AlertSignalRead;
