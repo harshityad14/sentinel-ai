@@ -151,7 +151,7 @@ class StatefulC2BeaconingDetector(BaseDetector):
     def detect(
         self,
         flow: FlowRecord,
-        features: FeatureVector,
+        features: Optional[FeatureVector] = None,
         context: Optional[Dict[str, Any]] = None,
     ) -> Optional[DetectionSignal]:
         """Analyze flow in stateful context across historical connections."""

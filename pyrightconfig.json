@@ -1,0 +1,13 @@
+{
+  "extraPaths": [
+    "./packages/models",
+    "./packages/ingestion",
+    "./packages/flow_engine",
+    "./packages/features",
+    "./packages/detection",
+    "./packages/correlation",
+    "./packages/streaming",
+    "./packages/ai_agent",
+    "./apps/api"
+  ]
+}

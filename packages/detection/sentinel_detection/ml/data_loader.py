@@ -10,7 +10,7 @@ Ensures:
 import csv
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union, overload
 import numpy as np
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
@@ -18,6 +18,25 @@ from sentinel_detection.ml.dataset_adapter import BaseDatasetAdapter, CICDataset
 from sentinel_detection.ml.trainer import CANONICAL_ML_FEATURES
 
 logger = logging.getLogger("sentinel.ml.data_loader")
+
+
+@overload
+def load_dataset_from_csv(
+    file_path: Union[str, Path],
+    adapter: Optional[BaseDatasetAdapter] = ...,
+    max_samples: Optional[int] = ...,
+    *,
+    return_metadata: Literal[True],
+) -> Tuple[np.ndarray, np.ndarray, List[str], Dict[str, np.ndarray]]: ...
+
+
+@overload
+def load_dataset_from_csv(
+    file_path: Union[str, Path],
+    adapter: Optional[BaseDatasetAdapter] = ...,
+    max_samples: Optional[int] = ...,
+    return_metadata: Literal[False] = ...,
+) -> Tuple[np.ndarray, np.ndarray, List[str]]: ...
 
 
 def load_dataset_from_csv(

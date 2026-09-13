@@ -38,7 +38,7 @@ class BaseDetector(ABC):
     def detect(
         self,
         flow: FlowRecord,
-        features: FeatureVector,
+        features: Optional[FeatureVector] = None,
         context: Optional[Dict[str, Any]] = None,
     ) -> Optional[DetectionSignal]:
         """Analyze a flow and its feature vector.

@@ -23,7 +23,7 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Tuple, Union, overload
 
 import numpy as np
 
@@ -62,6 +62,27 @@ def find_csv_files(dataset_dir: Path) -> List[Path]:
     return sorted(dataset_dir.glob("*.csv"))
 
 
+@overload
+def load_and_split_csv(
+    file_path: Path,
+    adapter: CICDatasetAdapter,
+    train_fraction: float = ...,
+    max_samples: Optional[int] = ...,
+    *,
+    return_metadata: Literal[True],
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Dict[str, np.ndarray], Dict[str, np.ndarray]]: ...
+
+
+@overload
+def load_and_split_csv(
+    file_path: Path,
+    adapter: CICDatasetAdapter,
+    train_fraction: float = ...,
+    max_samples: Optional[int] = ...,
+    return_metadata: Literal[False] = ...,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: ...
+
+
 def load_and_split_csv(
     file_path: Path,
     adapter: CICDatasetAdapter,
@@ -84,6 +105,7 @@ def load_and_split_csv(
       - Full class coverage: every attack session in the file is represented in both splits.
       - Zero sample fabrication or duplication: all test samples are 100% genuine holdout flows.
     """
+    meta: Dict[str, np.ndarray] = {}
     if return_metadata:
         X, y, _, meta = load_dataset_from_csv(
             file_path, adapter=adapter, max_samples=max_samples, return_metadata=True
@@ -397,6 +419,17 @@ def main() -> None:
     # -- 6. Train --
     out_dir = Path(args.output)
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Initialise variables used in the summary block so that Pyright does not
+    # flag them as "possibly unbound".  These defaults are never reached because
+    # the summary section uses the same ``args.skip_rf`` / ``args.skip_if``
+    # guards that gate the training blocks below.
+    metrics: Dict = {}
+    gap: float = 0.0
+    model_file: Path = Path()
+    X_train_benign: np.ndarray = np.empty(0)
+    if_metrics: Dict = {}
+    if_model_file: Path = Path()
 
     if not args.skip_rf:
         logger.info("=" * 60)
