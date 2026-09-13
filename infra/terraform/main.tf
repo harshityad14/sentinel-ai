@@ -77,20 +77,41 @@ module "database" {
 
 # 5. Compute Orchestration (ECS Fargate, Task Definitions, Roles)
 module "ecs" {
-  source               = "./modules/ecs"
-  project_name         = var.project_name
-  environment          = var.environment
-  private_subnet_ids   = module.vpc.private_subnet_ids
-  security_group_id    = module.security.ecs_security_group_id
-  api_target_group_arn = module.alb.api_target_group_arn
-  api_image            = var.api_image
-  worker_image         = var.worker_image
-  api_cpu              = var.api_cpu
-  api_memory           = var.api_memory
-  worker_cpu           = var.worker_cpu
-  worker_memory        = var.worker_memory
-  api_desired_count    = var.api_desired_count
-  worker_desired_count = var.worker_desired_count
-  db_secret_arn        = module.database.db_secret_arn
-  ai_secret_arn        = var.secrets_manager_ai_secret_arn
+  source                  = "./modules/ecs"
+  project_name            = var.project_name
+  environment             = var.environment
+  vpc_id                  = module.vpc.vpc_id
+  private_subnet_ids      = module.vpc.private_subnet_ids
+  security_group_id       = module.security.ecs_security_group_id
+  kafka_security_group_id = module.security.msk_security_group_id
+  api_target_group_arn    = module.alb.api_target_group_arn
+  web_target_group_arn    = module.alb.web_target_group_arn
+  api_image               = var.api_image
+  web_image               = var.web_image
+  worker_image            = var.worker_image
+  kafka_image             = var.kafka_image
+  kafka_bootstrap_servers = var.kafka_bootstrap_servers
+  api_cpu                 = var.api_cpu
+  api_memory              = var.api_memory
+  worker_cpu              = var.worker_cpu
+  worker_memory           = var.worker_memory
+  web_cpu                 = var.web_cpu
+  web_memory              = var.web_memory
+  api_desired_count       = var.api_desired_count
+  worker_desired_count    = var.worker_desired_count
+  web_desired_count       = var.web_desired_count
+  db_secret_arn           = module.database.db_secret_arn
+  ai_secret_arn           = var.secrets_manager_ai_secret_arn
+
+  trusted_hosts = distinct(compact(concat(
+    var.trusted_hosts,
+    [module.alb.alb_dns_name],
+    var.custom_domain != "" ? [var.custom_domain] : []
+  )))
+
+  cors_origins = distinct(compact(concat(
+    var.cors_origins,
+    ["http://${module.alb.alb_dns_name}", "https://${module.alb.alb_dns_name}"],
+    var.custom_domain != "" ? ["http://${var.custom_domain}", "https://${var.custom_domain}"] : []
+  )))
 }

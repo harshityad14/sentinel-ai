@@ -23,6 +23,16 @@ output "migration_task_definition" {
   value       = module.ecs.migration_task_definition_arn
 }
 
+output "web_service_name" {
+  description = "ECS Web Frontend Service Name"
+  value       = module.ecs.web_service_name
+}
+
+output "kafka_endpoint" {
+  description = "Kafka streaming broker endpoint"
+  value       = module.ecs.kafka_endpoint
+}
+
 output "database_endpoint" {
   description = "PostgreSQL connection endpoint (internal private subnet only)"
   value       = module.database.db_endpoint

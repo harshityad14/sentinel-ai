@@ -100,6 +100,54 @@ variable "secrets_manager_ai_secret_arn" {
   default     = ""
 }
 
+variable "web_cpu" {
+  description = "CPU units for Web Fargate task"
+  type        = number
+  default     = 256
+}
+
+variable "web_memory" {
+  description = "Memory (MB) for Web Fargate task"
+  type        = number
+  default     = 512
+}
+
+variable "web_desired_count" {
+  description = "Number of Web task replicas"
+  type        = number
+  default     = 2
+}
+
+variable "kafka_image" {
+  description = "Container image for internal Apache Kafka KRaft broker"
+  type        = string
+  default     = "apache/kafka:3.7.0"
+}
+
+variable "kafka_bootstrap_servers" {
+  description = "External Kafka bootstrap servers (optional; if empty, uses internal ECS Kafka service discovery)"
+  type        = string
+  default     = ""
+}
+
+variable "custom_domain" {
+  description = "Custom domain name for SentinelAI (optional, e.g. sentinel.example.com)"
+  type        = string
+  default     = ""
+}
+
+variable "trusted_hosts" {
+  description = "Explicit list of allowed ingress host headers for API (no wildcards)"
+  type        = list(string)
+  default     = ["localhost", "127.0.0.1", "web", "api"]
+}
+
+variable "cors_origins" {
+  description = "Explicit list of allowed CORS origins for API (no wildcards)"
+  type        = list(string)
+  default     = ["http://localhost:8080"]
+}
+
 variable "ssl_certificate_arn" {
   description = "ACM SSL Certificate ARN for ALB HTTPS listener (optional)"
   type        = string

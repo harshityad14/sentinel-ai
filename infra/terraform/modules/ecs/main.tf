@@ -43,6 +43,10 @@ resource "aws_iam_role_policy_attachment" "execution_standard" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+locals {
+  kafka_endpoint = var.kafka_bootstrap_servers != "" ? var.kafka_bootstrap_servers : "kafka.${var.project_name}-${var.environment}.local:9092"
+}
+
 # Least-privilege Secrets Manager access policy for Task Execution Role
 resource "aws_iam_policy" "secrets_access" {
   name        = "${var.project_name}-${var.environment}-secrets-access-policy"
@@ -68,7 +72,7 @@ resource "aws_iam_policy" "secrets_access" {
 
 resource "aws_iam_role_policy_attachment" "execution_secrets" {
   role       = aws_iam_role.execution.name
-  policy_arn = aws_iam_policy.secrets_access.policy_arn
+  policy_arn = aws_iam_policy.secrets_access.arn
 }
 
 # IAM Role: ECS Task Role (Runtime permissions for the running application - strictly passive)
@@ -85,6 +89,136 @@ resource "aws_iam_role" "task" {
       }
     ]
   })
+}
+
+# ==============================================================================
+# Internal Service Discovery (Cloud Map Private DNS)
+# ==============================================================================
+resource "aws_service_discovery_private_dns_namespace" "main" {
+  name        = "${var.project_name}-${var.environment}.local"
+  description = "Private DNS namespace for SentinelAI internal services"
+  vpc         = var.vpc_id
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-private-dns"
+    Environment = var.environment
+  }
+}
+
+resource "aws_service_discovery_service" "kafka" {
+  name = "kafka"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.main.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-kafka-discovery"
+    Environment = var.environment
+  }
+}
+
+# ==============================================================================
+# Apache Kafka (KRaft) Task Definition & Long-Running Service
+# ==============================================================================
+resource "aws_ecs_task_definition" "kafka" {
+  family                   = "${var.project_name}-${var.environment}-kafka"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "1024"
+  memory                   = "2048"
+  execution_role_arn       = aws_iam_role.execution.arn
+  task_role_arn            = aws_iam_role.task.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "kafka"
+      image     = var.kafka_image
+      essential = true
+      portMappings = [
+        {
+          containerPort = 9092
+          hostPort      = 9092
+          protocol      = "tcp"
+        },
+        {
+          containerPort = 9093
+          hostPort      = 9093
+          protocol      = "tcp"
+        }
+      ]
+      environment = [
+        { name = "KAFKA_NODE_ID", value = "1" },
+        { name = "KAFKA_PROCESS_ROLES", value = "broker,controller" },
+        { name = "KAFKA_LISTENERS", value = "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093" },
+        { name = "KAFKA_ADVERTISED_LISTENERS", value = "PLAINTEXT://kafka.${var.project_name}-${var.environment}.local:9092" },
+        { name = "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP", value = "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT" },
+        { name = "KAFKA_CONTROLLER_LISTENER_NAMES", value = "CONTROLLER" },
+        { name = "KAFKA_INTER_BROKER_LISTENER_NAME", value = "PLAINTEXT" },
+        { name = "KAFKA_CONTROLLER_QUORUM_VOTERS", value = "1@127.0.0.1:9093" },
+        { name = "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR", value = "1" },
+        { name = "KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR", value = "1" },
+        { name = "KAFKA_TRANSACTION_STATE_LOG_MIN_ISR", value = "1" },
+        { name = "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS", value = "0" },
+        { name = "KAFKA_NUM_PARTITIONS", value = "6" },
+        { name = "KAFKA_AUTO_CREATE_TOPICS_ENABLE", value = "true" }
+      ]
+      healthCheck = {
+        command     = ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+        interval    = 30
+        timeout     = 10
+        retries     = 3
+        startPeriod = 20
+      }
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
+          "awslogs-region"        = "us-east-1"
+          "awslogs-stream-prefix" = "kafka"
+        }
+      }
+    }
+  ])
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-kafka-task"
+    Environment = var.environment
+  }
+}
+
+resource "aws_ecs_service" "kafka" {
+  name            = "${var.project_name}-${var.environment}-kafka-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.kafka.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [var.kafka_security_group_id]
+    assign_public_ip = false
+  }
+
+  service_registries {
+    registry_arn = aws_service_discovery_service.kafka.arn
+  }
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-kafka-service"
+    Environment = var.environment
+  }
 }
 
 # ==============================================================================
@@ -110,7 +244,11 @@ resource "aws_ecs_task_definition" "migration" {
         { name = "SENTINEL_ENV", value = var.environment }
       ]
       secrets = [
-        { name = "DATABASE_URL", valueFrom = "${var.db_secret_arn}:connection_url::" }
+        { name = "POSTGRES_USER", valueFrom = "${var.db_secret_arn}:username::" },
+        { name = "POSTGRES_PASSWORD", valueFrom = "${var.db_secret_arn}:password::" },
+        { name = "POSTGRES_HOST", valueFrom = "${var.db_secret_arn}:host::" },
+        { name = "POSTGRES_PORT", valueFrom = "${var.db_secret_arn}:port::" },
+        { name = "POSTGRES_DB", valueFrom = "${var.db_secret_arn}:dbname::" }
       ]
       logConfiguration = {
         logDriver = "awslogs"
@@ -159,13 +297,20 @@ resource "aws_ecs_task_definition" "api" {
         { name = "API_HOST", value = "0.0.0.0" },
         { name = "API_PORT", value = "8000" },
         { name = "LOG_LEVEL", value = "INFO" },
-        { name = "KAFKA_BOOTSTRAP_SERVERS", value = var.kafka_bootstrap_servers }
+        { name = "KAFKA_BOOTSTRAP_SERVERS", value = local.kafka_endpoint },
+        { name = "TRUSTED_HOSTS", value = join(",", var.trusted_hosts) },
+        { name = "CORS_ORIGINS", value = join(",", var.cors_origins) }
       ]
-      secrets = compact([
-        { name = "DATABASE_URL", valueFrom = "${var.db_secret_arn}:connection_url::" },
-        { name = "POSTGRES_PASSWORD", valueFrom = "${var.db_secret_arn}:password::" },
-        var.ai_secret_arn != "" ? { name = "SENTINEL_AI_API_KEY", valueFrom = var.ai_secret_arn } : null
-      ])
+      secrets = concat(
+        [
+          { name = "POSTGRES_USER", valueFrom = "${var.db_secret_arn}:username::" },
+          { name = "POSTGRES_PASSWORD", valueFrom = "${var.db_secret_arn}:password::" },
+          { name = "POSTGRES_HOST", valueFrom = "${var.db_secret_arn}:host::" },
+          { name = "POSTGRES_PORT", valueFrom = "${var.db_secret_arn}:port::" },
+          { name = "POSTGRES_DB", valueFrom = "${var.db_secret_arn}:dbname::" }
+        ],
+        var.ai_secret_arn != "" ? [{ name = "SENTINEL_AI_API_KEY", valueFrom = var.ai_secret_arn }] : []
+      )
       healthCheck = {
         command     = ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
         interval    = 30
@@ -221,6 +366,85 @@ resource "aws_ecs_service" "api" {
 }
 
 # ==============================================================================
+# Web Frontend Task Definition & Long-Running Service
+# ==============================================================================
+resource "aws_ecs_task_definition" "web" {
+  family                   = "${var.project_name}-${var.environment}-web"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = tostring(var.web_cpu)
+  memory                   = tostring(var.web_memory)
+  execution_role_arn       = aws_iam_role.execution.arn
+  task_role_arn            = aws_iam_role.task.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "web"
+      image     = var.web_image
+      essential = true
+      user      = "101"
+      portMappings = [
+        {
+          containerPort = 8080
+          hostPort      = 8080
+          protocol      = "tcp"
+        }
+      ]
+      healthCheck = {
+        command     = ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 10
+      }
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.ecs.name
+          "awslogs-region"        = "us-east-1"
+          "awslogs-stream-prefix" = "web"
+        }
+      }
+    }
+  ])
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-web-task"
+    Environment = var.environment
+  }
+}
+
+resource "aws_ecs_service" "web" {
+  name            = "${var.project_name}-${var.environment}-web-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.web.arn
+  desired_count   = var.web_desired_count
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = var.private_subnet_ids
+    security_groups  = [var.security_group_id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = var.web_target_group_arn
+    container_name   = "web"
+    container_port   = 8080
+  }
+
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-web-service"
+    Environment = var.environment
+  }
+}
+
+# ==============================================================================
 # Streaming Worker Task Definition & Long-Running Service
 # ==============================================================================
 resource "aws_ecs_task_definition" "worker" {
@@ -242,10 +466,14 @@ resource "aws_ecs_task_definition" "worker" {
       environment = [
         { name = "SENTINEL_ENV", value = var.environment },
         { name = "LOG_LEVEL", value = "INFO" },
-        { name = "KAFKA_BOOTSTRAP_SERVERS", value = var.kafka_bootstrap_servers }
+        { name = "KAFKA_BOOTSTRAP_SERVERS", value = local.kafka_endpoint }
       ]
       secrets = [
-        { name = "DATABASE_URL", valueFrom = "${var.db_secret_arn}:connection_url::" }
+        { name = "POSTGRES_USER", valueFrom = "${var.db_secret_arn}:username::" },
+        { name = "POSTGRES_PASSWORD", valueFrom = "${var.db_secret_arn}:password::" },
+        { name = "POSTGRES_HOST", valueFrom = "${var.db_secret_arn}:host::" },
+        { name = "POSTGRES_PORT", valueFrom = "${var.db_secret_arn}:port::" },
+        { name = "POSTGRES_DB", valueFrom = "${var.db_secret_arn}:dbname::" }
       ]
       logConfiguration = {
         logDriver = "awslogs"

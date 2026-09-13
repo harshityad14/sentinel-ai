@@ -1,5 +1,6 @@
 from typing import List, Optional
-from pydantic import Field, model_validator
+import json
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +27,10 @@ class Settings(BaseSettings):
         description="SQLAlchemy database connection URI",
     )
     postgres_password: Optional[str] = Field(default=None, alias="POSTGRES_PASSWORD")
+    postgres_user: Optional[str] = Field(default=None, alias="POSTGRES_USER")
+    postgres_host: Optional[str] = Field(default=None, alias="POSTGRES_HOST")
+    postgres_port: int = Field(default=5432, alias="POSTGRES_PORT")
+    postgres_db: Optional[str] = Field(default=None, alias="POSTGRES_DB")
     db_pool_size: int = Field(default=10, alias="DB_POOL_SIZE")
     db_max_overflow: int = Field(default=20, alias="DB_MAX_OVERFLOW")
     db_pool_recycle: int = Field(default=1800, alias="DB_POOL_RECYCLE")
@@ -46,8 +51,30 @@ class Settings(BaseSettings):
     ai_cache_ttl_seconds: int = Field(default=3600, alias="SENTINEL_AI_CACHE_TTL_SECONDS")
     ai_cache_max_entries: int = Field(default=1000, alias="SENTINEL_AI_CACHE_MAX_ENTRIES")
 
+    @field_validator("cors_origins", "trusted_hosts", mode="before")
+    @classmethod
+    def parse_comma_separated_list(cls, v):
+        if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("[") and v.endswith("]"):
+                try:
+                    return json.loads(v)
+                except Exception:
+                    pass
+            return [item.strip() for item in v.split(",") if item.strip()]
+        return v
+
     @model_validator(mode="after")
     def validate_production_settings(self):
+        # Assemble DATABASE_URL from discrete RDS parameters if host is provided
+        if (self.database_url.startswith("sqlite") or not self.database_url) and self.postgres_host:
+            user = self.postgres_user or "sentinel"
+            pwd = self.postgres_password or ""
+            host = self.postgres_host
+            port = self.postgres_port or 5432
+            db = self.postgres_db or "sentinel_db"
+            self.database_url = f"postgresql://{user}:{pwd}@{host}:{port}/{db}"
+
         if self.environment.lower() == "production":
             # 1. POSTGRES_PASSWORD check
             if not self.postgres_password:

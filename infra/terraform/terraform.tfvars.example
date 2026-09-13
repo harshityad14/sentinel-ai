@@ -14,21 +14,31 @@ api_cpu              = 512
 api_memory           = 1024
 worker_cpu           = 512
 worker_memory        = 1024
+web_cpu              = 256
+web_memory           = 512
 api_desired_count    = 2
 worker_desired_count = 2
+web_desired_count    = 2
 
 # Database configuration
 db_instance_class    = "db.t4g.medium"
 db_allocated_storage = 50
 
-# ECR Container Images
+# ECR Container Images & Kafka
 api_image    = "123456789012.dkr.ecr.us-east-1.amazonaws.com/sentinel-api:v0.5.0"
 web_image    = "123456789012.dkr.ecr.us-east-1.amazonaws.com/sentinel-web:v0.5.0"
 worker_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/sentinel-worker:v0.5.0"
+kafka_image  = "apache/kafka:3.7.0"
+kafka_bootstrap_servers = ""
 
 # Secret ARNs (Never store actual passwords or keys in .tfvars!)
 secrets_manager_db_secret_arn = "arn:aws:secretsmanager:us-east-1:123456789012:secret:sentinel/production/db-credentials-aBcDeF"
 secrets_manager_ai_secret_arn = "arn:aws:secretsmanager:us-east-1:123456789012:secret:sentinel/production/ai-key-xYz123"
+
+# Domain and Ingress Security
+custom_domain = ""
+trusted_hosts = ["localhost", "127.0.0.1", "web", "api"]
+cors_origins  = ["http://localhost:8080"]
 
 # Optional ACM Certificate ARN for HTTPS
 ssl_certificate_arn = ""

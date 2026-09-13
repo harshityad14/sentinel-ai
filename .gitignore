@@ -92,3 +92,9 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl

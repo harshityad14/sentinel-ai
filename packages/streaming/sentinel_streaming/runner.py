@@ -51,7 +51,20 @@ class StreamingPipelineRunner:
         use_memory_bus: bool = False,
     ):
         self.bootstrap_servers = bootstrap_servers or os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-        self.database_url = database_url or os.getenv("DATABASE_URL", "sqlite:///./sentinel.db")
+
+        db_url = database_url or os.getenv("DATABASE_URL")
+        if not db_url or db_url.startswith("sqlite"):
+            pg_host = os.getenv("POSTGRES_HOST")
+            if pg_host:
+                pg_user = os.getenv("POSTGRES_USER", "sentinel")
+                pg_pass = os.getenv("POSTGRES_PASSWORD", "")
+                pg_port = os.getenv("POSTGRES_PORT", "5432")
+                pg_db = os.getenv("POSTGRES_DB", "sentinel_db")
+                db_url = f"postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}"
+            else:
+                db_url = db_url or "sqlite:///./sentinel.db"
+        self.database_url = db_url
+
         self.use_memory_bus = use_memory_bus
 
         self.workers: List[BaseStreamWorker] = []
