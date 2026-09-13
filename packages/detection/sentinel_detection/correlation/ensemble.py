@@ -95,6 +95,65 @@ class EnsembleCorrelationEngine:
                     context=ctx,
                 )
 
+            # Rule-only threat -> alert remains valid with original detector type and severity
+            if sig.detector_type == DetectorType.RULE:
+                return DetectionResult(
+                    detection_id=detection_id,
+                    flow_id=flow.flow_id,
+                    threat_type=sig.threat_type,
+                    detector_type=DetectorType.RULE,
+                    confidence=sig.confidence,
+                    severity=sig.severity,
+                    evidence=sig.evidence,
+                    signals=signals,
+                    feature_version=features.feature_version,
+                    explanation=f"Deterministic rule ({sig.detector_name}) detected authoritative threat {sig.threat_type.value} with {sig.confidence:.1%} confidence",
+                    context=ctx,
+                )
+
+            # Borderline ML prediction without corroboration -> low-priority investigation signal
+            if sig.detector_type == DetectorType.ML and sig.metadata.get("is_borderline", False):
+                thresh = sig.metadata.get("calibrated_threshold", self.min_consensus_confidence)
+                return DetectionResult(
+                    detection_id=detection_id,
+                    flow_id=flow.flow_id,
+                    threat_type=sig.threat_type,
+                    detector_type=DetectorType.ML,
+                    confidence=sig.confidence,
+                    severity=DetectionSeverity.LOW,
+                    evidence=sig.evidence,
+                    signals=signals,
+                    feature_version=features.feature_version,
+                    model_version=str(sig.metadata.get("model_version", "")) or None,
+                    explanation=(
+                        f"Uncorroborated borderline ML prediction for {sig.threat_type.value} "
+                        f"({sig.confidence:.1%} < calibrated threshold {thresh:.2f}) retained as "
+                        f"low-priority investigation signal without alert escalation"
+                    ),
+                    context=ctx,
+                )
+
+            # IF anomaly alone -> investigation signal
+            if sig.detector_type == DetectorType.STATISTICAL and sig.threat_type == ThreatType.BEHAVIORAL_ANOMALY:
+                return DetectionResult(
+                    detection_id=detection_id,
+                    flow_id=flow.flow_id,
+                    threat_type=ThreatType.BEHAVIORAL_ANOMALY,
+                    detector_type=DetectorType.STATISTICAL,
+                    confidence=sig.confidence,
+                    severity=DetectionSeverity.LOW,
+                    evidence=sig.evidence,
+                    signals=signals,
+                    feature_version=features.feature_version,
+                    explanation=(
+                        f"Unsupervised anomaly signal ({sig.detector_name}) flagged "
+                        f"out-of-distribution traffic (confidence={sig.confidence:.1%}) "
+                        f"as behavioral investigation signal"
+                    ),
+                    context=ctx,
+                )
+
+            # Strong ML prediction with no rule -> retain detection without unnecessary escalation
             return DetectionResult(
                 detection_id=detection_id,
                 flow_id=flow.flow_id,
@@ -105,25 +164,97 @@ class EnsembleCorrelationEngine:
                 evidence=sig.evidence,
                 signals=signals,
                 feature_version=features.feature_version,
+                model_version=str(sig.metadata.get("model_version", "")) or None,
                 explanation=sig.description,
                 context=ctx,
             )
 
-        # 3. Multi-signal grouping by threat type
+        # 3. Multi-signal grouping and conservative fusion
+        # Separate unsupervised anomaly signals (Isolation Forest / STATISTICAL)
+        anomaly_sigs = [
+            s for s in signals
+            if s.detector_type == DetectorType.STATISTICAL and s.threat_type == ThreatType.BEHAVIORAL_ANOMALY
+        ]
+        non_anomaly_sigs = [
+            s for s in signals
+            if not (s.detector_type == DetectorType.STATISTICAL and s.threat_type == ThreatType.BEHAVIORAL_ANOMALY)
+        ]
+
+        # Case: ONLY unsupervised anomaly signals were emitted
+        if not non_anomaly_sigs and anomaly_sigs:
+            best_anom = max(anomaly_sigs, key=lambda s: s.confidence)
+            return DetectionResult(
+                detection_id=detection_id,
+                flow_id=flow.flow_id,
+                threat_type=ThreatType.BEHAVIORAL_ANOMALY,
+                detector_type=DetectorType.STATISTICAL,
+                confidence=best_anom.confidence,
+                severity=DetectionSeverity.LOW,
+                evidence=best_anom.evidence,
+                signals=signals,
+                feature_version=features.feature_version,
+                explanation=(
+                    f"Unsupervised anomaly signal ({best_anom.detector_name}) flagged "
+                    f"out-of-distribution traffic (confidence={best_anom.confidence:.1%}) "
+                    f"as behavioral investigation signal"
+                ),
+                context=ctx,
+            )
+
+        # Group non-anomaly signals by threat type
         grouped: Dict[ThreatType, List[DetectionSignal]] = {}
-        for sig in signals:
+        for sig in non_anomaly_sigs:
             grouped.setdefault(sig.threat_type, []).append(sig)
 
-        scored_threats: List[Tuple[ThreatType, float, List[DetectionSignal], Set[DetectorType]]] = []
+        scored_threats: List[Tuple[ThreatType, float, List[DetectionSignal], Set[DetectorType], bool]] = []
+        # (threat, conf, threat_sigs, det_types, is_borderline_ml)
 
         for threat, threat_sigs in grouped.items():
             conf, det_types = self._calculate_ensemble_confidence(threat_sigs)
-            scored_threats.append((threat, conf, threat_sigs, det_types))
+            has_rule = (DetectorType.RULE in det_types)
+            has_ml = (DetectorType.ML in det_types)
+            is_borderline_ml = False
+            if has_ml and not has_rule:
+                ml_sigs_for_threat = [s for s in threat_sigs if s.detector_type == DetectorType.ML]
+                if all(s.metadata.get("is_borderline", False) for s in ml_sigs_for_threat):
+                    is_borderline_ml = True
+            scored_threats.append((threat, conf, threat_sigs, det_types, is_borderline_ml))
 
-        # Sort by confidence descending, then by number of agreeing detector types
-        scored_threats.sort(key=lambda item: (item[1], len(item[3])), reverse=True)
+        # Rule priority: If a deterministic rule fired with high confidence (>= 0.70),
+        # it is authoritative and prioritized over uncorroborated ML predictions
+        rule_threats = [t for t, conf, sigs, types, is_bord in scored_threats if DetectorType.RULE in types and conf >= 0.70]
+        if rule_threats:
+            # Reorder scored_threats so high-confidence rule threats are first, followed by multi-detector agreement
+            scored_threats.sort(
+                key=lambda item: (
+                    DetectorType.RULE in item[3] and item[1] >= 0.70,
+                    len(item[3]) > 1,
+                    item[1],
+                ),
+                reverse=True,
+            )
+        else:
+            # If no high-confidence rule: prioritize non-borderline or corroborated threats
+            scored_threats.sort(
+                key=lambda item: (
+                    not item[4] or bool(anomaly_sigs),
+                    len(item[3]) > 1,
+                    item[1],
+                ),
+                reverse=True,
+            )
 
-        winning_threat, win_conf, win_sigs, win_types = scored_threats[0]
+        winning_threat, win_conf, win_sigs, win_types, is_borderline_ml = scored_threats[0]
+
+        # Anomaly corroboration: If an unsupervised anomaly signal (STATISTICAL) also fired on this flow,
+        # it provides independent corroborating evidence of abnormality for specific attacks
+        corroborated_by_if = False
+        if anomaly_sigs and winning_threat != ThreatType.BEHAVIORAL_ANOMALY:
+            win_types.add(DetectorType.STATISTICAL)
+            win_conf = min(0.99, win_conf + self.agreement_bonus * 0.5)
+            corroborated_by_if = True
+            # Borderline ML is now corroborated by IF anomaly
+            is_borderline_ml = False
 
         # Consolidate evidence deduplicated by feature name
         seen_evidence: Set[str] = set()
@@ -136,18 +267,32 @@ class EnsembleCorrelationEngine:
                     consolidated_evidence.append(ev)
 
         # Evaluate consensus severity
-        consensus_severity = evaluate_severity(
-            threat_type=winning_threat,
-            confidence=win_conf,
-            evidence=consolidated_evidence,
-            context=ctx,
-        )
+        if is_borderline_ml and not corroborated_by_if and DetectorType.RULE not in win_types:
+            consensus_severity = DetectionSeverity.LOW
+        else:
+            consensus_severity = evaluate_severity(
+                threat_type=winning_threat,
+                confidence=win_conf,
+                evidence=consolidated_evidence,
+                context=ctx,
+            )
 
         detector_names = [s.detector_name for s in signals]
+        layer_summary = ", ".join(sorted(dt.value for dt in win_types))
+
+        explanation_notes = []
+        if DetectorType.RULE in win_types and DetectorType.ML in win_types:
+            explanation_notes.append("RF+Rule agreement corroborated")
+        if corroborated_by_if:
+            explanation_notes.append("Isolation Forest anomaly corroboration")
+        if is_borderline_ml:
+            explanation_notes.append("Uncorroborated borderline ML prediction retained as investigation signal")
+
+        notes_str = f" ({'; '.join(explanation_notes)})" if explanation_notes else ""
         explanation = (
             f"Ensemble detected {winning_threat.value} with {win_conf:.1%} confidence "
-            f"across {len(signals)} signal(s) from {len(win_types)} detector category(ies): "
-            f"[{', '.join(detector_names)}]"
+            f"across {len(signals)} signal(s) from layers [{layer_summary}]: "
+            f"[{', '.join(detector_names)}]{notes_str}"
         )
 
         # Extract ML model version if present in ML signals
@@ -161,7 +306,7 @@ class EnsembleCorrelationEngine:
             detection_id=detection_id,
             flow_id=flow.flow_id,
             threat_type=winning_threat,
-            detector_type=DetectorType.ENSEMBLE,
+            detector_type=DetectorType.ENSEMBLE if len(win_types) > 1 else list(win_types)[0],
             confidence=round(win_conf, 4),
             severity=consensus_severity,
             evidence=consolidated_evidence,
@@ -171,6 +316,7 @@ class EnsembleCorrelationEngine:
             explanation=explanation,
             context=ctx,
         )
+
 
     def _calculate_ensemble_confidence(
         self, signals: List[DetectionSignal]

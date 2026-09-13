@@ -20,9 +20,19 @@ class MLModelMetadata(BaseModel):
     )
     hyperparameters: Dict[str, Any] = Field(default_factory=dict, description="Model training hyperparameters")
     metrics: Dict[str, Any] = Field(
-        default_factory=lambda: {
-            "status": "IMPLEMENTED_INFERENCE_INFRASTRUCTURE",
-            "evaluation_note": "Deterministic test baseline fixture; production weights pending external dataset training.",
-        },
+        default_factory=dict,
         description="Validation metrics or explicit inference infrastructure declaration",
     )
+    dataset_metadata: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Training dataset provenance, sample count, and checksums",
+    )
+    class_thresholds: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Class-specific calibrated probability thresholds derived from validation split",
+    )
+    calibration_provenance: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Methodology, split details, and validation metrics for probability threshold calibration",
+    )
+

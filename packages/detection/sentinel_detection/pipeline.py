@@ -3,12 +3,14 @@
 from typing import Any, Dict, List, Optional
 from sentinel_detection.base import BaseDetector
 from sentinel_detection.correlation.ensemble import EnsembleCorrelationEngine
+from sentinel_detection.ml.isolation_forest_detector import IsolationForestAnomalyDetector
 from sentinel_detection.ml.random_forest_detector import RandomForestMLDetector
 from sentinel_detection.rules.c2_beaconing import C2BeaconingRuleDetector
 from sentinel_detection.rules.data_exfiltration import DataExfiltrationRuleDetector
 from sentinel_detection.rules.dns_dga import DNSDGARuleDetector
 from sentinel_detection.rules.dns_tunneling import DNSTunnelingRuleDetector
 from sentinel_detection.rules.port_scan import PortScanRuleDetector
+from sentinel_detection.rules.stateful_c2 import StatefulC2BeaconingDetector
 from sentinel_detection.rules.suspicious_tls import SuspiciousTLSRuleDetector
 from sentinel_detection.rules.syn_flood import SYNFloodRuleDetector
 from sentinel_detection.rules.udp_flood import UDPFloodRuleDetector
@@ -100,13 +102,15 @@ def create_default_detection_pipeline() -> DetectionPipeline:
     pipeline.register_detector(DNSDGARuleDetector())
     pipeline.register_detector(DNSTunnelingRuleDetector())
     pipeline.register_detector(C2BeaconingRuleDetector())
+    pipeline.register_detector(StatefulC2BeaconingDetector())
     pipeline.register_detector(DataExfiltrationRuleDetector())
     pipeline.register_detector(SuspiciousTLSRuleDetector())
 
-    # 2. Statistical / Anomaly profiling (1 detector)
+    # 2. Statistical / Anomaly profiling
     pipeline.register_detector(StatisticalAnomalyDetector())
+    pipeline.register_detector(IsolationForestAnomalyDetector())
 
-    # 3. Supervised ML Classifier (1 detector)
+    # 3. Supervised ML Classifier
     pipeline.register_detector(RandomForestMLDetector())
 
     return pipeline

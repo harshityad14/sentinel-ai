@@ -1,0 +1,331 @@
+{
+  "model_name": "sentinel_rf_production",
+  "model_version": "3.0.0",
+  "algorithm": "RandomForestClassifier",
+  "feature_version": "1.0",
+  "feature_names": [
+    "net_duration_sec",
+    "net_total_bytes",
+    "net_forward_bytes",
+    "net_backward_bytes",
+    "net_total_packets",
+    "net_forward_packets",
+    "net_backward_packets",
+    "net_bytes_per_second",
+    "net_packets_per_second",
+    "net_byte_asymmetry_ratio",
+    "net_mean_packet_size",
+    "net_packet_size_std",
+    "time_mean_inter_arrival_sec",
+    "time_inter_arrival_std_sec",
+    "time_jitter_ratio"
+  ],
+  "target_classes": [
+    "BEHAVIORAL_ANOMALY",
+    "BENIGN",
+    "C2_BEACONING",
+    "DATA_EXFILTRATION",
+    "PORT_SCAN",
+    "SYN_FLOOD",
+    "UDP_FLOOD"
+  ],
+  "created_at": "2026-09-12T18:17:41.531937+00:00",
+  "hyperparameters": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": "balanced_subsample",
+    "criterion": "gini",
+    "max_depth": 16,
+    "max_features": "sqrt",
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 2,
+    "min_samples_split": 5,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 100,
+    "n_jobs": -1,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "metrics": {
+    "overall_accuracy": 0.8705,
+    "macro_f1": 0.6166,
+    "weighted_f1": 0.9095,
+    "macro_precision": 0.6039,
+    "macro_recall": 0.8875,
+    "benign_false_positive_rate": 0.1357,
+    "classes": [
+      "BEHAVIORAL_ANOMALY",
+      "BENIGN",
+      "C2_BEACONING",
+      "DATA_EXFILTRATION",
+      "PORT_SCAN",
+      "SYN_FLOOD",
+      "UDP_FLOOD"
+    ],
+    "confusion_matrix": [
+      [
+        3075,
+        124,
+        0,
+        0,
+        0,
+        7,
+        0
+      ],
+      [
+        33429,
+        392937,
+        21991,
+        12,
+        133,
+        6109,
+        13
+      ],
+      [
+        0,
+        2,
+        392,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        3,
+        0,
+        5,
+        0,
+        0,
+        0
+      ],
+      [
+        5,
+        119,
+        0,
+        0,
+        31661,
+        1,
+        0
+      ],
+      [
+        0,
+        11283,
+        0,
+        0,
+        0,
+        39242,
+        8
+      ],
+      [
+        0,
+        84,
+        5,
+        0,
+        0,
+        0,
+        25517
+      ]
+    ],
+    "per_class": {
+      "BEHAVIORAL_ANOMALY": {
+        "precision": 0.0842,
+        "recall": 0.9591,
+        "f1_score": 0.1549,
+        "false_positive_rate": 0.0594,
+        "support": 3206
+      },
+      "BENIGN": {
+        "precision": 0.9713,
+        "recall": 0.8643,
+        "f1_score": 0.9147,
+        "false_positive_rate": 0.1041,
+        "support": 454624
+      },
+      "C2_BEACONING": {
+        "precision": 0.0175,
+        "recall": 0.9949,
+        "f1_score": 0.0344,
+        "false_positive_rate": 0.0389,
+        "support": 394
+      },
+      "DATA_EXFILTRATION": {
+        "precision": 0.2941,
+        "recall": 0.625,
+        "f1_score": 0.4,
+        "false_positive_rate": 0.0,
+        "support": 8
+      },
+      "PORT_SCAN": {
+        "precision": 0.9958,
+        "recall": 0.9961,
+        "f1_score": 0.9959,
+        "false_positive_rate": 0.0002,
+        "support": 31786
+      },
+      "SYN_FLOOD": {
+        "precision": 0.8651,
+        "recall": 0.7766,
+        "f1_score": 0.8185,
+        "false_positive_rate": 0.0119,
+        "support": 50533
+      },
+      "UDP_FLOOD": {
+        "precision": 0.9992,
+        "recall": 0.9965,
+        "f1_score": 0.9978,
+        "false_positive_rate": 0.0,
+        "support": 25606
+      }
+    },
+    "feature_importances": {
+      "net_forward_bytes": 0.1169,
+      "net_byte_asymmetry_ratio": 0.1148,
+      "net_total_bytes": 0.1103,
+      "net_mean_packet_size": 0.1077,
+      "net_backward_bytes": 0.1023,
+      "net_packet_size_std": 0.0777,
+      "net_backward_packets": 0.0582,
+      "net_duration_sec": 0.0497,
+      "time_jitter_ratio": 0.0495,
+      "net_forward_packets": 0.0476,
+      "net_total_packets": 0.0394,
+      "net_bytes_per_second": 0.0352,
+      "time_mean_inter_arrival_sec": 0.0336,
+      "time_inter_arrival_std_sec": 0.0316,
+      "net_packets_per_second": 0.0255
+    },
+    "performance": {
+      "test_samples_count": 566157,
+      "total_inference_time_sec": 1.0083,
+      "batch_mean_latency_ms": 0.0018,
+      "mean_latency_ms": 0.0018,
+      "single_flow_mean_latency_ms": 3.8219,
+      "p50_latency_ms": 3.2682,
+      "p95_latency_ms": 6.6302,
+      "p99_latency_ms": 7.774,
+      "batch_throughput_flows_sec": 561488.2,
+      "single_flow_throughput_flows_sec": 261.6,
+      "throughput_flows_sec": 561488.2
+    }
+  },
+  "dataset_metadata": {
+    "source_dataset": "CIC-IDS2017",
+    "source_hash": "7aa3acf7f66f9b24",
+    "source_files": [
+      "Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv",
+      "Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv",
+      "Friday-WorkingHours-Morning.pcap_ISCX.csv",
+      "Monday-WorkingHours.pcap_ISCX.csv",
+      "Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv",
+      "Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv",
+      "Tuesday-WorkingHours.pcap_ISCX.csv",
+      "Wednesday-workingHours.pcap_ISCX.csv"
+    ],
+    "split_strategy": "attack-aware per-class chronological (80% train / 20% test within each CSV)",
+    "total_train_raw": 2264586,
+    "total_train_subsampled": 399997,
+    "total_test": 566157,
+    "train_classes": [
+      "BEHAVIORAL_ANOMALY",
+      "BENIGN",
+      "C2_BEACONING",
+      "DATA_EXFILTRATION",
+      "PORT_SCAN",
+      "SYN_FLOOD",
+      "UDP_FLOOD"
+    ],
+    "test_classes": [
+      "BEHAVIORAL_ANOMALY",
+      "BENIGN",
+      "C2_BEACONING",
+      "DATA_EXFILTRATION",
+      "PORT_SCAN",
+      "SYN_FLOOD",
+      "UDP_FLOOD"
+    ],
+    "class_overlap": [
+      "BEHAVIORAL_ANOMALY",
+      "BENIGN",
+      "C2_BEACONING",
+      "DATA_EXFILTRATION",
+      "PORT_SCAN",
+      "SYN_FLOOD",
+      "UDP_FLOOD"
+    ],
+    "random_state": 42
+  },
+  "class_thresholds": {
+    "BEHAVIORAL_ANOMALY": 0.98,
+    "C2_BEACONING": 0.98,
+    "DATA_EXFILTRATION": 0.59,
+    "PORT_SCAN": 0.65,
+    "SYN_FLOOD": 0.77,
+    "UDP_FLOOD": 0.56
+  },
+  "calibration_provenance": {
+    "calibrated_at": "2026-09-12T19:43:20.332466+00:00",
+    "methodology": "Deterministic grid-search maximizing F1 score on a 20% validation split of the training set with zero holdout exposure",
+    "validation_samples_count": 452914,
+    "validation_class_distribution": {
+      "BEHAVIORAL_ANOMALY": 2564,
+      "BENIGN": 363694,
+      "C2_BEACONING": 314,
+      "DATA_EXFILTRATION": 5,
+      "PORT_SCAN": 25428,
+      "SYN_FLOOD": 40425,
+      "UDP_FLOOD": 20484
+    },
+    "validation_raw_benign_fpr": 0.0688,
+    "validation_calibrated_benign_fpr": 0.0145,
+    "class_calibration_details": {
+      "BEHAVIORAL_ANOMALY": {
+        "threshold": 0.98,
+        "validation_support": 2564,
+        "validation_precision": 0.9964,
+        "validation_recall": 0.8534,
+        "validation_f1": 0.9193
+      },
+      "C2_BEACONING": {
+        "threshold": 0.98,
+        "validation_support": 314,
+        "validation_precision": 0.9934,
+        "validation_recall": 0.4777,
+        "validation_f1": 0.6452
+      },
+      "DATA_EXFILTRATION": {
+        "threshold": 0.59,
+        "validation_support": 5,
+        "validation_precision": 0.8333,
+        "validation_recall": 1.0,
+        "validation_f1": 0.9091
+      },
+      "PORT_SCAN": {
+        "threshold": 0.65,
+        "validation_support": 25428,
+        "validation_precision": 0.9922,
+        "validation_recall": 0.9994,
+        "validation_f1": 0.9958
+      },
+      "SYN_FLOOD": {
+        "threshold": 0.77,
+        "validation_support": 40425,
+        "validation_precision": 0.8866,
+        "validation_recall": 0.9777,
+        "validation_f1": 0.9299
+      },
+      "UDP_FLOOD": {
+        "threshold": 0.56,
+        "validation_support": 20484,
+        "validation_precision": 0.9988,
+        "validation_recall": 0.9992,
+        "validation_f1": 0.999
+      }
+    }
+  }
+}

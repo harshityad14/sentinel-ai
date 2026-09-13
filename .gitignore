@@ -53,15 +53,19 @@ dist/
 dist-ssr/
 *.local
 
-# Network Captures & Datasets (Do not commit large binary traffic dumps)
+# Network Captures & Datasets (Do not commit large binary traffic dumps or datasets)
 *.pcap
 *.pcapng
 *.cap
 *.dmp
+*.csv
+!data/samples/*.csv
+data/external/
 data/samples/*.pcap
 data/samples/*.pcapng
 !data/samples/.gitkeep
 !data/synthetic/.gitkeep
+
 
 # Environment & Credentials
 .env

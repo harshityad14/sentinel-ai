@@ -41,6 +41,12 @@ audit:
 demo-replay:
 	python scripts/demo_replay.py --count 20
 
+train-ml:
+	python scripts/train_model.py
+
+benchmark-ml:
+	python tests/benchmarks/benchmark_ml_inference.py --count 200
+
 tf-validate:
 	cd infra/terraform && terraform init -backend=false && terraform validate
 

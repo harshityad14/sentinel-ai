@@ -1,0 +1,659 @@
+{
+  "1_RF_Alone": {
+    "metrics": {
+      "accuracy": 0.9468,
+      "macro_f1": 0.7127,
+      "weighted_f1": 0.941,
+      "macro_precision": 0.9094,
+      "macro_recall": 0.6537,
+      "benign_fpr": 0.01,
+      "anomaly_precision": 0.9498,
+      "anomaly_recall": 0.771,
+      "anomaly_f1": 0.8511,
+      "false_alert_count": 4548,
+      "false_negative_count": 25541,
+      "true_positive_attack_count": 85992,
+      "true_negative_benign_count": 450076,
+      "per_class": {
+        "BENIGN": {
+          "precision": 0.9463,
+          "recall": 0.99,
+          "f1_score": 0.9677,
+          "false_positive_rate": 0.229,
+          "support": 454624,
+          "tp": 450076,
+          "fp": 25541,
+          "fn": 4548,
+          "tn": 85992
+        },
+        "PORT_SCAN": {
+          "precision": 0.9971,
+          "recall": 0.9959,
+          "f1_score": 0.9965,
+          "false_positive_rate": 0.0002,
+          "support": 31786,
+          "tp": 31655,
+          "fp": 93,
+          "fn": 131,
+          "tn": 534278
+        },
+        "SYN_FLOOD": {
+          "precision": 0.8594,
+          "recall": 0.5368,
+          "f1_score": 0.6608,
+          "false_positive_rate": 0.0086,
+          "support": 50533,
+          "tp": 27124,
+          "fp": 4438,
+          "fn": 23409,
+          "tn": 511186
+        },
+        "UDP_FLOOD": {
+          "precision": 0.9993,
+          "recall": 0.9961,
+          "f1_score": 0.9977,
+          "false_positive_rate": 0.0,
+          "support": 25606,
+          "tp": 25506,
+          "fp": 19,
+          "fn": 100,
+          "tn": 540532
+        },
+        "C2_BEACONING": {
+          "precision": 0.7647,
+          "recall": 0.033,
+          "f1_score": 0.0633,
+          "false_positive_rate": 0.0,
+          "support": 394,
+          "tp": 13,
+          "fp": 4,
+          "fn": 381,
+          "tn": 565759
+        },
+        "DATA_EXFILTRATION": {
+          "precision": 0.8,
+          "recall": 0.5,
+          "f1_score": 0.6154,
+          "false_positive_rate": 0.0,
+          "support": 8,
+          "tp": 4,
+          "fp": 1,
+          "fn": 4,
+          "tn": 566148
+        },
+        "BEHAVIORAL_ANOMALY": {
+          "precision": 0.9988,
+          "recall": 0.5243,
+          "f1_score": 0.6877,
+          "false_positive_rate": 0.0,
+          "support": 3206,
+          "tp": 1681,
+          "fp": 2,
+          "fn": 1525,
+          "tn": 562949
+        }
+      }
+    },
+    "latency": {
+      "batch_mean_latency_ms": 0.017023,
+      "batch_throughput_flows_sec": 58744.1,
+      "single_flow_mean_latency_ms": 16.2361,
+      "p50_latency_ms": 15.6864,
+      "p95_latency_ms": 20.796,
+      "p99_latency_ms": 23.1586,
+      "single_flow_throughput_flows_sec": 61.6
+    }
+  },
+  "2_IF_Alone": {
+    "metrics": {
+      "accuracy": 0.7979,
+      "anomaly_precision": 0.0048,
+      "anomaly_recall": 0.0001,
+      "anomaly_f1": 0.0002,
+      "benign_fpr": 0.0063,
+      "per_class_recall": {
+        "BENIGN": 0.0063,
+        "PORT_SCAN": 0.0,
+        "SYN_FLOOD": 0.0,
+        "UDP_FLOOD": 0.0,
+        "C2_BEACONING": 0.0,
+        "DATA_EXFILTRATION": 0.125,
+        "BEHAVIORAL_ANOMALY": 0.0041
+      }
+    },
+    "latency": {
+      "batch_mean_latency_ms": 0.007267,
+      "batch_throughput_flows_sec": 137603.4,
+      "single_flow_mean_latency_ms": 13.7765,
+      "p50_latency_ms": 14.052,
+      "p95_latency_ms": 20.1737,
+      "p99_latency_ms": 23.5157,
+      "single_flow_throughput_flows_sec": 72.6
+    }
+  },
+  "3_Rules_Alone": {
+    "metrics": {
+      "accuracy": 0.8014,
+      "macro_f1": 0.1776,
+      "weighted_f1": 0.7154,
+      "macro_precision": 0.1457,
+      "macro_recall": 0.2821,
+      "benign_fpr": 0.0028,
+      "anomaly_precision": 0.5269,
+      "anomaly_recall": 0.0127,
+      "anomaly_f1": 0.0247,
+      "false_alert_count": 1268,
+      "false_negative_count": 110121,
+      "true_positive_attack_count": 1412,
+      "true_negative_benign_count": 453356,
+      "per_class": {
+        "BENIGN": {
+          "precision": 0.8046,
+          "recall": 0.9972,
+          "f1_score": 0.8906,
+          "false_positive_rate": 0.9873,
+          "support": 454624,
+          "tp": 453356,
+          "fp": 110121,
+          "fn": 1268,
+          "tn": 1412
+        },
+        "PORT_SCAN": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "false_positive_rate": 0.0,
+          "support": 31786,
+          "tp": 0,
+          "fp": 0,
+          "fn": 31786,
+          "tn": 534371
+        },
+        "SYN_FLOOD": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "false_positive_rate": 0.0006,
+          "support": 50533,
+          "tp": 0,
+          "fp": 328,
+          "fn": 50533,
+          "tn": 515296
+        },
+        "UDP_FLOOD": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "false_positive_rate": 0.001,
+          "support": 25606,
+          "tp": 0,
+          "fp": 563,
+          "fn": 25606,
+          "tn": 539988
+        },
+        "C2_BEACONING": {
+          "precision": 0.2152,
+          "recall": 0.9772,
+          "f1_score": 0.3527,
+          "false_positive_rate": 0.0025,
+          "support": 394,
+          "tp": 385,
+          "fp": 1404,
+          "fn": 9,
+          "tn": 564359
+        },
+        "DATA_EXFILTRATION": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "false_positive_rate": 0.0,
+          "support": 8,
+          "tp": 0,
+          "fp": 0,
+          "fn": 8,
+          "tn": 566149
+        },
+        "BEHAVIORAL_ANOMALY": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "false_positive_rate": 0.0,
+          "support": 3206,
+          "tp": 0,
+          "fp": 0,
+          "fn": 3206,
+          "tn": 562951
+        }
+      }
+    },
+    "latency": {
+      "batch_mean_latency_ms": 0.000622,
+      "batch_throughput_flows_sec": 1607996.7,
+      "single_flow_mean_latency_ms": 0.1844,
+      "p50_latency_ms": 0.1674,
+      "p95_latency_ms": 0.3426,
+      "p99_latency_ms": 0.5809,
+      "single_flow_throughput_flows_sec": 5424.0
+    }
+  },
+  "4_RF_plus_IF": {
+    "metrics": {
+      "accuracy": 0.9469,
+      "macro_f1": 0.7131,
+      "weighted_f1": 0.941,
+      "macro_precision": 0.9094,
+      "macro_recall": 0.6542,
+      "benign_fpr": 0.01,
+      "anomaly_precision": 0.9498,
+      "anomaly_recall": 0.7711,
+      "anomaly_f1": 0.8512,
+      "false_alert_count": 4548,
+      "false_negative_count": 25531,
+      "true_positive_attack_count": 86002,
+      "true_negative_benign_count": 450076,
+      "per_class": {
+        "BENIGN": {
+          "precision": 0.9463,
+          "recall": 0.99,
+          "f1_score": 0.9677,
+          "false_positive_rate": 0.2289,
+          "support": 454624,
+          "tp": 450076,
+          "fp": 25531,
+          "fn": 4548,
+          "tn": 86002
+        },
+        "PORT_SCAN": {
+          "precision": 0.9971,
+          "recall": 0.9959,
+          "f1_score": 0.9965,
+          "false_positive_rate": 0.0002,
+          "support": 31786,
+          "tp": 31655,
+          "fp": 93,
+          "fn": 131,
+          "tn": 534278
+        },
+        "SYN_FLOOD": {
+          "precision": 0.8594,
+          "recall": 0.5368,
+          "f1_score": 0.6608,
+          "false_positive_rate": 0.0086,
+          "support": 50533,
+          "tp": 27124,
+          "fp": 4438,
+          "fn": 23409,
+          "tn": 511186
+        },
+        "UDP_FLOOD": {
+          "precision": 0.9993,
+          "recall": 0.9961,
+          "f1_score": 0.9977,
+          "false_positive_rate": 0.0,
+          "support": 25606,
+          "tp": 25506,
+          "fp": 19,
+          "fn": 100,
+          "tn": 540532
+        },
+        "C2_BEACONING": {
+          "precision": 0.7647,
+          "recall": 0.033,
+          "f1_score": 0.0633,
+          "false_positive_rate": 0.0,
+          "support": 394,
+          "tp": 13,
+          "fp": 4,
+          "fn": 381,
+          "tn": 565759
+        },
+        "DATA_EXFILTRATION": {
+          "precision": 0.8,
+          "recall": 0.5,
+          "f1_score": 0.6154,
+          "false_positive_rate": 0.0,
+          "support": 8,
+          "tp": 4,
+          "fp": 1,
+          "fn": 4,
+          "tn": 566148
+        },
+        "BEHAVIORAL_ANOMALY": {
+          "precision": 0.9988,
+          "recall": 0.5274,
+          "f1_score": 0.6903,
+          "false_positive_rate": 0.0,
+          "support": 3206,
+          "tp": 1691,
+          "fp": 2,
+          "fn": 1515,
+          "tn": 562949
+        }
+      }
+    },
+    "latency": {
+      "batch_mean_latency_ms": 0.023393,
+      "batch_throughput_flows_sec": 42747.9,
+      "single_flow_mean_latency_ms": 29.5978,
+      "p50_latency_ms": 30.2436,
+      "p95_latency_ms": 40.5115,
+      "p99_latency_ms": 46.4298,
+      "single_flow_throughput_flows_sec": 33.8
+    }
+  },
+  "5_RF_plus_Rules": {
+    "metrics": {
+      "accuracy": 0.9453,
+      "macro_f1": 0.7973,
+      "weighted_f1": 0.9399,
+      "macro_precision": 0.8687,
+      "macro_recall": 0.7882,
+      "benign_fpr": 0.0128,
+      "anomaly_precision": 0.937,
+      "anomaly_recall": 0.7743,
+      "anomaly_f1": 0.8479,
+      "false_alert_count": 5805,
+      "false_negative_count": 25169,
+      "true_positive_attack_count": 86364,
+      "true_negative_benign_count": 448819,
+      "per_class": {
+        "BENIGN": {
+          "precision": 0.9469,
+          "recall": 0.9872,
+          "f1_score": 0.9666,
+          "false_positive_rate": 0.2257,
+          "support": 454624,
+          "tp": 448819,
+          "fp": 25169,
+          "fn": 5805,
+          "tn": 86364
+        },
+        "PORT_SCAN": {
+          "precision": 0.9971,
+          "recall": 0.9959,
+          "f1_score": 0.9965,
+          "false_positive_rate": 0.0002,
+          "support": 31786,
+          "tp": 31655,
+          "fp": 93,
+          "fn": 131,
+          "tn": 534278
+        },
+        "SYN_FLOOD": {
+          "precision": 0.8505,
+          "recall": 0.5368,
+          "f1_score": 0.6582,
+          "false_positive_rate": 0.0092,
+          "support": 50533,
+          "tp": 27124,
+          "fp": 4766,
+          "fn": 23409,
+          "tn": 510858
+        },
+        "UDP_FLOOD": {
+          "precision": 0.9777,
+          "recall": 0.9961,
+          "f1_score": 0.9868,
+          "false_positive_rate": 0.0011,
+          "support": 25606,
+          "tp": 25506,
+          "fp": 582,
+          "fn": 100,
+          "tn": 539969
+        },
+        "C2_BEACONING": {
+          "precision": 0.5099,
+          "recall": 0.9772,
+          "f1_score": 0.6701,
+          "false_positive_rate": 0.0007,
+          "support": 394,
+          "tp": 385,
+          "fp": 370,
+          "fn": 9,
+          "tn": 565393
+        },
+        "DATA_EXFILTRATION": {
+          "precision": 0.8,
+          "recall": 0.5,
+          "f1_score": 0.6154,
+          "false_positive_rate": 0.0,
+          "support": 8,
+          "tp": 4,
+          "fp": 1,
+          "fn": 4,
+          "tn": 566148
+        },
+        "BEHAVIORAL_ANOMALY": {
+          "precision": 0.9988,
+          "recall": 0.5243,
+          "f1_score": 0.6877,
+          "false_positive_rate": 0.0,
+          "support": 3206,
+          "tp": 1681,
+          "fp": 2,
+          "fn": 1525,
+          "tn": 562949
+        }
+      }
+    },
+    "latency": {
+      "batch_mean_latency_ms": 0.018454,
+      "batch_throughput_flows_sec": 54187.6,
+      "single_flow_mean_latency_ms": 13.2352,
+      "p50_latency_ms": 12.4793,
+      "p95_latency_ms": 17.9473,
+      "p99_latency_ms": 21.1472,
+      "single_flow_throughput_flows_sec": 75.6
+    }
+  },
+  "6_IF_plus_Rules": {
+    "metrics": {
+      "accuracy": 0.8014,
+      "macro_f1": 0.1776,
+      "weighted_f1": 0.7154,
+      "macro_precision": 0.1457,
+      "macro_recall": 0.2821,
+      "benign_fpr": 0.0028,
+      "anomaly_precision": 0.5269,
+      "anomaly_recall": 0.0127,
+      "anomaly_f1": 0.0247,
+      "false_alert_count": 1268,
+      "false_negative_count": 110121,
+      "true_positive_attack_count": 1412,
+      "true_negative_benign_count": 453356,
+      "per_class": {
+        "BENIGN": {
+          "precision": 0.8046,
+          "recall": 0.9972,
+          "f1_score": 0.8906,
+          "false_positive_rate": 0.9873,
+          "support": 454624,
+          "tp": 453356,
+          "fp": 110121,
+          "fn": 1268,
+          "tn": 1412
+        },
+        "PORT_SCAN": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "false_positive_rate": 0.0,
+          "support": 31786,
+          "tp": 0,
+          "fp": 0,
+          "fn": 31786,
+          "tn": 534371
+        },
+        "SYN_FLOOD": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "false_positive_rate": 0.0006,
+          "support": 50533,
+          "tp": 0,
+          "fp": 328,
+          "fn": 50533,
+          "tn": 515296
+        },
+        "UDP_FLOOD": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "false_positive_rate": 0.001,
+          "support": 25606,
+          "tp": 0,
+          "fp": 563,
+          "fn": 25606,
+          "tn": 539988
+        },
+        "C2_BEACONING": {
+          "precision": 0.2152,
+          "recall": 0.9772,
+          "f1_score": 0.3527,
+          "false_positive_rate": 0.0025,
+          "support": 394,
+          "tp": 385,
+          "fp": 1404,
+          "fn": 9,
+          "tn": 564359
+        },
+        "DATA_EXFILTRATION": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "false_positive_rate": 0.0,
+          "support": 8,
+          "tp": 0,
+          "fp": 0,
+          "fn": 8,
+          "tn": 566149
+        },
+        "BEHAVIORAL_ANOMALY": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "false_positive_rate": 0.0,
+          "support": 3206,
+          "tp": 0,
+          "fp": 0,
+          "fn": 3206,
+          "tn": 562951
+        }
+      }
+    },
+    "latency": {
+      "batch_mean_latency_ms": 0.00068,
+      "batch_throughput_flows_sec": 1471337.5,
+      "single_flow_mean_latency_ms": 0.1267,
+      "p50_latency_ms": 0.1101,
+      "p95_latency_ms": 0.2238,
+      "p99_latency_ms": 0.381,
+      "single_flow_throughput_flows_sec": 7892.8
+    }
+  },
+  "7_Full_3Layer_System": {
+    "metrics": {
+      "accuracy": 0.9453,
+      "macro_f1": 0.7977,
+      "weighted_f1": 0.9399,
+      "macro_precision": 0.8687,
+      "macro_recall": 0.7887,
+      "benign_fpr": 0.0128,
+      "anomaly_precision": 0.937,
+      "anomaly_recall": 0.7744,
+      "anomaly_f1": 0.848,
+      "false_alert_count": 5805,
+      "false_negative_count": 25159,
+      "true_positive_attack_count": 86374,
+      "true_negative_benign_count": 448819,
+      "per_class": {
+        "BENIGN": {
+          "precision": 0.9469,
+          "recall": 0.9872,
+          "f1_score": 0.9667,
+          "false_positive_rate": 0.2256,
+          "support": 454624,
+          "tp": 448819,
+          "fp": 25159,
+          "fn": 5805,
+          "tn": 86374
+        },
+        "PORT_SCAN": {
+          "precision": 0.9971,
+          "recall": 0.9959,
+          "f1_score": 0.9965,
+          "false_positive_rate": 0.0002,
+          "support": 31786,
+          "tp": 31655,
+          "fp": 93,
+          "fn": 131,
+          "tn": 534278
+        },
+        "SYN_FLOOD": {
+          "precision": 0.8505,
+          "recall": 0.5368,
+          "f1_score": 0.6582,
+          "false_positive_rate": 0.0092,
+          "support": 50533,
+          "tp": 27124,
+          "fp": 4766,
+          "fn": 23409,
+          "tn": 510858
+        },
+        "UDP_FLOOD": {
+          "precision": 0.9777,
+          "recall": 0.9961,
+          "f1_score": 0.9868,
+          "false_positive_rate": 0.0011,
+          "support": 25606,
+          "tp": 25506,
+          "fp": 582,
+          "fn": 100,
+          "tn": 539969
+        },
+        "C2_BEACONING": {
+          "precision": 0.5099,
+          "recall": 0.9772,
+          "f1_score": 0.6701,
+          "false_positive_rate": 0.0007,
+          "support": 394,
+          "tp": 385,
+          "fp": 370,
+          "fn": 9,
+          "tn": 565393
+        },
+        "DATA_EXFILTRATION": {
+          "precision": 0.8,
+          "recall": 0.5,
+          "f1_score": 0.6154,
+          "false_positive_rate": 0.0,
+          "support": 8,
+          "tp": 4,
+          "fp": 1,
+          "fn": 4,
+          "tn": 566148
+        },
+        "BEHAVIORAL_ANOMALY": {
+          "precision": 0.9988,
+          "recall": 0.5274,
+          "f1_score": 0.6903,
+          "false_positive_rate": 0.0,
+          "support": 3206,
+          "tp": 1691,
+          "fp": 2,
+          "fn": 1515,
+          "tn": 562949
+        }
+      }
+    },
+    "latency": {
+      "batch_mean_latency_ms": 0.025328,
+      "batch_throughput_flows_sec": 39481.4,
+      "single_flow_mean_latency_ms": 19.4731,
+      "p50_latency_ms": 17.2156,
+      "p95_latency_ms": 29.785,
+      "p99_latency_ms": 37.2354,
+      "single_flow_throughput_flows_sec": 51.4
+    }
+  }
+}

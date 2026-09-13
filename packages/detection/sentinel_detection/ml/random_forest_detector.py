@@ -1,5 +1,4 @@
-"""Supervised machine learning detector utilizing Random Forest classification."""
-
+import logging
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -13,6 +12,9 @@ from sentinel_detection.ml.trainer import CANONICAL_ML_FEATURES, create_determin
 from sentinel_models.detection import DetectionEvidence, DetectionSeverity, DetectionSignal, DetectorType, ThreatType
 from sentinel_models.events import FlowRecord
 from sentinel_models.features import FeatureVector
+
+logger = logging.getLogger("sentinel.ml.detector")
+
 
 
 class RandomForestMLDetector(BaseDetector):
@@ -54,8 +56,18 @@ class RandomForestMLDetector(BaseDetector):
         elif model_path is not None and metadata_path is not None:
             self.model, self.metadata = self._load_model_artifacts(model_path, metadata_path)
         else:
-            # Deterministic baseline fixture fallback
-            self.model, self.metadata = create_deterministic_baseline_model()
+            # Check for default packaged production model
+            models_dir = Path(__file__).resolve().parent / "models"
+            pkg_model = models_dir / "sentinel_rf_production.joblib"
+            pkg_meta = models_dir / "sentinel_rf_production.json"
+            if pkg_model.exists() and pkg_meta.exists():
+                logger.info(f"Loading packaged production ML model from {pkg_model}")
+                self.model, self.metadata = self._load_model_artifacts(pkg_model, pkg_meta)
+            else:
+                # Deterministic baseline fixture fallback for CI and clean clones
+                logger.info("No production ML weights found; loading deterministic baseline fixture for fallback")
+                self.model, self.metadata = create_deterministic_baseline_model()
+
 
     def _load_model_artifacts(
         self,
@@ -71,6 +83,11 @@ class RandomForestMLDetector(BaseDetector):
             raise FileNotFoundError(f"ML metadata file not found: {meta_path}")
 
         model = joblib.load(m_path)
+        if hasattr(model, "set_params"):
+            try:
+                model.set_params(n_jobs=1)
+            except Exception:
+                pass
         with open(meta_path, "r", encoding="utf-8") as f:
             metadata = MLModelMetadata.model_validate_json(f.read())
 
@@ -122,9 +139,14 @@ class RandomForestMLDetector(BaseDetector):
         best_class = classes[best_idx]
         best_prob = float(probabilities[best_idx])
 
-        # If highest probability is BENIGN or fails confidence threshold, do not emit alert
+        # If highest probability is BENIGN or fails base confidence threshold, do not emit alert
         if best_class == "BENIGN" or best_prob < self.min_confidence:
             return None
+
+        # Check calibrated class threshold from metadata
+        class_thresholds = getattr(self.metadata, "class_thresholds", {}) or {}
+        calibrated_thresh = class_thresholds.get(best_class, self.min_confidence)
+        is_borderline = (best_prob < calibrated_thresh)
 
         try:
             detected_threat = ThreatType(best_class)
@@ -156,7 +178,12 @@ class RandomForestMLDetector(BaseDetector):
                     )
                 )
 
-        severity = self.SEVERITY_MAPPING.get(detected_threat, DetectionSeverity.MEDIUM)
+        # Borderline predictions are tagged as LOW severity investigation signals
+        if is_borderline:
+            severity = DetectionSeverity.LOW
+        else:
+            severity = self.SEVERITY_MAPPING.get(detected_threat, DetectionSeverity.MEDIUM)
+
         prob_dict = {classes[i]: round(float(probabilities[i]), 4) for i in range(len(classes))}
 
         return DetectionSignal(
@@ -170,11 +197,15 @@ class RandomForestMLDetector(BaseDetector):
             description=(
                 f"ML classifier ({self.metadata.model_name} v{self.metadata.model_version}) "
                 f"predicted {detected_threat.value} with {best_prob:.1%} confidence"
+                + (f" [BORDERLINE: threshold {calibrated_thresh:.2f}]" if is_borderline else "")
             ),
             metadata={
                 "model_name": self.metadata.model_name,
                 "model_version": self.metadata.model_version,
                 "class_probabilities": prob_dict,
                 "imputed_features": imputed_features,
+                "is_borderline": is_borderline,
+                "calibrated_threshold": calibrated_thresh,
             },
         )
+

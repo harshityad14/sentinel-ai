@@ -1,0 +1,92 @@
+{
+  "model_name": "sentinel_if_production",
+  "model_version": "3.0.0",
+  "algorithm": "IsolationForest",
+  "feature_version": "1.0",
+  "feature_names": [
+    "net_duration_sec",
+    "net_total_bytes",
+    "net_forward_bytes",
+    "net_backward_bytes",
+    "net_total_packets",
+    "net_forward_packets",
+    "net_backward_packets",
+    "net_bytes_per_second",
+    "net_packets_per_second",
+    "net_byte_asymmetry_ratio",
+    "net_mean_packet_size",
+    "net_packet_size_std",
+    "time_mean_inter_arrival_sec",
+    "time_inter_arrival_std_sec",
+    "time_jitter_ratio"
+  ],
+  "target_classes": [
+    "BENIGN",
+    "ANOMALOUS"
+  ],
+  "created_at": "2026-09-12T18:48:18.680127+00:00",
+  "hyperparameters": {
+    "bootstrap": false,
+    "contamination": 0.015,
+    "max_features": 1.0,
+    "max_samples": "auto",
+    "n_estimators": 100,
+    "n_jobs": -1,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "metrics": {
+    "anomaly_precision": 0.0048,
+    "anomaly_recall": 0.0001,
+    "anomaly_f1": 0.0002,
+    "benign_false_positive_rate": 0.0063,
+    "calibrated_threshold": 0.0,
+    "confusion_matrix": {
+      "true_positives_attacks_detected": 14,
+      "false_positives_benign_flagged": 2882,
+      "false_negatives_attacks_missed": 111519,
+      "true_negatives_benign_normal": 451742
+    },
+    "per_class_detection_rate": {
+      "BEHAVIORAL_ANOMALY": 0.0041,
+      "BENIGN": 0.0063,
+      "C2_BEACONING": 0.0,
+      "DATA_EXFILTRATION": 0.125,
+      "PORT_SCAN": 0.0,
+      "SYN_FLOOD": 0.0,
+      "UDP_FLOOD": 0.0
+    },
+    "performance": {
+      "test_samples_count": 566157,
+      "total_inference_time_sec": 1.6582,
+      "batch_mean_latency_ms": 0.0029,
+      "single_flow_mean_latency_ms": 5.0162,
+      "p50_latency_ms": 4.507,
+      "p95_latency_ms": 8.1139,
+      "p99_latency_ms": 11.3099,
+      "batch_throughput_flows_sec": 341431.1,
+      "single_flow_throughput_flows_sec": 199.4
+    }
+  },
+  "dataset_metadata": {
+    "source_dataset": "CIC-IDS2017",
+    "source_hash": "7aa3acf7f66f9b24",
+    "source_files": [
+      "Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv",
+      "Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv",
+      "Friday-WorkingHours-Morning.pcap_ISCX.csv",
+      "Monday-WorkingHours.pcap_ISCX.csv",
+      "Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv",
+      "Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv",
+      "Tuesday-WorkingHours.pcap_ISCX.csv",
+      "Wednesday-workingHours.pcap_ISCX.csv"
+    ],
+    "split_strategy": "attack-aware per-class chronological (80% train / 20% test within each CSV)",
+    "total_benign_train": 300000,
+    "total_test": 566157,
+    "calibration_quantile": 0.015,
+    "calibrated_threshold": 0.0,
+    "random_state": 42
+  }
+}
