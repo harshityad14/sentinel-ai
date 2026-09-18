@@ -7,7 +7,7 @@ import { EvidenceViewer } from './EvidenceViewer';
 import { SignalList } from './SignalList';
 import { LifecycleModal } from './LifecycleModal';
 import { AIAnalystPanel } from '../ai/AIAnalystPanel';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 
 interface AlertDetailDrawerProps {
   alert: SecurityAlertRead | null;
@@ -27,7 +27,7 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
 
   const riskValue =
     typeof alert.risk_score === "object" && alert.risk_score !== null
-      ? alert.risk_score.score
+      ? (alert.risk_score as any).score || 0
       : typeof alert.risk_score === "number"
       ? alert.risk_score
       : 0;
@@ -42,10 +42,10 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
           top: 0,
           right: 0,
           bottom: 0,
-          width: 'min(640px, 90vw)',
-          background: 'var(--bg-surface)',
+          width: 'min(640px, 92vw)',
+          background: '#ffffff',
           borderLeft: '1px solid var(--border)',
-          boxShadow: '-8px 0 32px rgba(0, 0, 0, 0.5)',
+          boxShadow: 'var(--shadow-drawer)',
           zIndex: 100,
           display: 'flex',
           flexDirection: 'column',
@@ -55,26 +55,26 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
         {/* Header */}
         <div
           style={{
-            padding: '1.25rem 1.5rem',
+            padding: '1.15rem 1.5rem',
             borderBottom: '1px solid var(--border)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-start',
-            background: 'var(--bg-card)',
+            background: '#ffffff',
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <Badge variant={alert.severity.toLowerCase() as any}>{alert.severity}</Badge>
+              <Badge severity={alert.severity}>{alert.severity}</Badge>
               <StatusPill status={alert.status} />
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.775rem', color: 'var(--text-muted)' }}>
                 {new Date(createdAtText).toLocaleString()}
               </span>
             </div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-main)', marginTop: '0.25rem' }}>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', marginTop: '0.25rem' }}>
               {alert.title || alert.threat_class}
             </h2>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
               ID: {alert.alert_id}
             </div>
           </div>
@@ -85,39 +85,42 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
               background: 'transparent',
               border: 'none',
               color: 'var(--text-muted)',
-              fontSize: '1.5rem',
               cursor: 'pointer',
               padding: '0.25rem',
-              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            ×
+            <X size={18} />
           </button>
         </div>
 
         {/* Action Toolbar */}
         <div
           style={{
-            padding: '0.75rem 1.5rem',
+            padding: '0.65rem 1.5rem',
             borderBottom: '1px solid var(--border)',
-            background: 'rgba(255, 255, 255, 0.01)',
+            background: '#f8fafc',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
           }}
         >
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
             <button
               onClick={() => setActiveTab('details')}
               style={{
-                padding: '0.35rem 0.75rem',
-                fontSize: '0.85rem',
-                borderRadius: '4px',
+                padding: '0.35rem 0.65rem',
+                fontSize: '0.8rem',
+                borderRadius: '5px',
                 border: 'none',
-                background: activeTab === 'details' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-                color: activeTab === 'details' ? 'var(--primary-glow)' : 'var(--text-muted)',
+                background: activeTab === 'details' ? '#eff6ff' : 'transparent',
+                color: activeTab === 'details' ? '#1d4ed8' : 'var(--text-secondary)',
                 cursor: 'pointer',
-                fontWeight: activeTab === 'details' ? 600 : 400,
+                fontWeight: activeTab === 'details' ? 600 : 500,
               }}
             >
               Overview
@@ -125,14 +128,14 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
             <button
               onClick={() => setActiveTab('evidence')}
               style={{
-                padding: '0.35rem 0.75rem',
-                fontSize: '0.85rem',
-                borderRadius: '4px',
+                padding: '0.35rem 0.65rem',
+                fontSize: '0.8rem',
+                borderRadius: '5px',
                 border: 'none',
-                background: activeTab === 'evidence' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-                color: activeTab === 'evidence' ? 'var(--primary-glow)' : 'var(--text-muted)',
+                background: activeTab === 'evidence' ? '#eff6ff' : 'transparent',
+                color: activeTab === 'evidence' ? '#1d4ed8' : 'var(--text-secondary)',
                 cursor: 'pointer',
-                fontWeight: activeTab === 'evidence' ? 600 : 400,
+                fontWeight: activeTab === 'evidence' ? 600 : 500,
               }}
             >
               Evidence ({Object.keys(alert.evidence || {}).length})
@@ -140,14 +143,14 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
             <button
               onClick={() => setActiveTab('signals')}
               style={{
-                padding: '0.35rem 0.75rem',
-                fontSize: '0.85rem',
-                borderRadius: '4px',
+                padding: '0.35rem 0.65rem',
+                fontSize: '0.8rem',
+                borderRadius: '5px',
                 border: 'none',
-                background: activeTab === 'signals' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-                color: activeTab === 'signals' ? 'var(--primary-glow)' : 'var(--text-muted)',
+                background: activeTab === 'signals' ? '#eff6ff' : 'transparent',
+                color: activeTab === 'signals' ? '#1d4ed8' : 'var(--text-secondary)',
                 cursor: 'pointer',
-                fontWeight: activeTab === 'signals' ? 600 : 400,
+                fontWeight: activeTab === 'signals' ? 600 : 500,
               }}
             >
               Signals ({(alert.detection_signals || []).length})
@@ -155,14 +158,14 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
             <button
               onClick={() => setActiveTab('audit')}
               style={{
-                padding: '0.35rem 0.75rem',
-                fontSize: '0.85rem',
-                borderRadius: '4px',
+                padding: '0.35rem 0.65rem',
+                fontSize: '0.8rem',
+                borderRadius: '5px',
                 border: 'none',
-                background: activeTab === 'audit' ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-                color: activeTab === 'audit' ? 'var(--primary-glow)' : 'var(--text-muted)',
+                background: activeTab === 'audit' ? '#eff6ff' : 'transparent',
+                color: activeTab === 'audit' ? '#1d4ed8' : 'var(--text-secondary)',
                 cursor: 'pointer',
-                fontWeight: activeTab === 'audit' ? 600 : 400,
+                fontWeight: activeTab === 'audit' ? 600 : 500,
               }}
             >
               Audit Trail
@@ -170,12 +173,12 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
             <button
               onClick={() => setActiveTab('ai_analyst')}
               style={{
-                padding: '0.35rem 0.75rem',
-                fontSize: '0.85rem',
-                borderRadius: '4px',
-                border: '1px solid rgba(59, 130, 246, 0.3)',
-                background: activeTab === 'ai_analyst' ? 'rgba(59, 130, 246, 0.25)' : 'rgba(59, 130, 246, 0.08)',
-                color: activeTab === 'ai_analyst' ? '#60a5fa' : '#93c5fd',
+                padding: '0.35rem 0.65rem',
+                fontSize: '0.8rem',
+                borderRadius: '5px',
+                border: '1px solid #bfdbfe',
+                background: activeTab === 'ai_analyst' ? '#eff6ff' : '#ffffff',
+                color: '#1d4ed8',
                 cursor: 'pointer',
                 fontWeight: activeTab === 'ai_analyst' ? 600 : 500,
                 display: 'inline-flex',
@@ -183,91 +186,78 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
                 gap: '0.35rem',
               }}
             >
-              <Sparkles size={13} />
+              <Sparkles size={12} color="#1d4ed8" />
               AI Analyst
             </button>
           </div>
 
           <button
             onClick={() => setIsLifecycleModalOpen(true)}
-            style={{
-              padding: '0.35rem 0.75rem',
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              borderRadius: '6px',
-              border: '1px solid var(--border)',
-              background: 'var(--primary)',
-              color: 'white',
-              cursor: 'pointer',
-            }}
+            className="btn btn-primary btn-sm"
           >
             Update Lifecycle
           </button>
         </div>
 
         {/* Content Body */}
-        <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ padding: '1.25rem 1.5rem', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1.25rem', background: '#f8fafc' }}>
           {activeTab === 'details' && (
             <>
               {/* Risk & Explanation Panel */}
               <div
+                className="glass-panel"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '1.5rem',
-                  background: 'var(--bg-card)',
-                  padding: '1.25rem',
-                  borderRadius: '8px',
-                  border: '1px solid var(--border)',
+                  gap: '1.25rem',
+                  padding: '1.15rem',
                 }}
               >
                 <div style={{ flexShrink: 0 }}>
-                  <RiskGauge score={riskValue} size={84} />
+                  <RiskGauge score={riskValue} size={80} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
                     Calculated Threat Risk
                   </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.4 }}>
-                    {alert.explanation || 'Anomaly observed across passive network telemetry matching correlated threat signatures.'}
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#0f172a', lineHeight: 1.45 }}>
+                    {alert.explanation || alert.description || 'Anomaly observed across passive network telemetry matching correlated threat signatures.'}
                   </p>
                 </div>
               </div>
 
               {/* Entity Context Table */}
               <div
+                className="glass-panel"
                 style={{
-                  background: 'var(--bg-card)',
-                  padding: '1.25rem',
-                  borderRadius: '8px',
-                  border: '1px solid var(--border)',
+                  padding: '1.15rem',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.75rem',
                 }}
               >
-                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   Network Entities
                 </span>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Source IP</span>
-                    <div style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem' }}>
+                    <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Source IP</span>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#0f172a', fontSize: '0.9rem' }}>
                       {alert.source_ip || 'N/A'}
                     </div>
                   </div>
                   <div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Destination IP</span>
-                    <div style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem' }}>
+                    <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Destination IP</span>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#0f172a', fontSize: '0.9rem' }}>
                       {alert.destination_ip || 'N/A'}
                     </div>
                   </div>
                 </div>
 
                 {alert.correlation_id && (
-                  <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.75rem' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Correlation Group ID</span>
-                    <div style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--primary-glow)' }}>
+                  <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '0.65rem' }}>
+                    <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Correlation Group ID</span>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.775rem', color: '#1d4ed8' }}>
                       {alert.correlation_id}
                     </div>
                   </div>
@@ -276,32 +266,31 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
 
               {/* MITRE ATT&CK Matrix Mapping */}
               <div
+                className="glass-panel"
                 style={{
-                  background: 'var(--bg-card)',
-                  padding: '1.25rem',
-                  borderRadius: '8px',
-                  border: '1px solid var(--border)',
+                  padding: '1.15rem',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.5rem',
                 }}
               >
-                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                   MITRE ATT&CK® Mappings
                 </span>
                 {alert.mitre_tactics && alert.mitre_tactics.length > 0 ? (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                     {alert.mitre_tactics.map((tactic, i) => (
                       <span
                         key={i}
                         style={{
-                          background: 'rgba(99, 102, 241, 0.1)',
-                          border: '1px solid rgba(99, 102, 241, 0.3)',
+                          background: '#eff6ff',
+                          border: '1px solid #bfdbfe',
                           padding: '0.2rem 0.5rem',
                           borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          color: 'var(--primary-glow)',
-                          fontFamily: 'monospace',
+                          fontSize: '0.725rem',
+                          color: '#1d4ed8',
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: 600,
                         }}
                       >
                         {tactic}
@@ -309,7 +298,7 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                     No specific MITRE ATT&CK tactics mapped to this alert.
                   </span>
                 )}
@@ -318,52 +307,52 @@ export const AlertDetailDrawer: React.FC<AlertDetailDrawerProps> = ({
           )}
 
           {activeTab === 'evidence' && (
-            <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+            <div className="glass-panel" style={{ padding: '1.15rem' }}>
               <EvidenceViewer evidence={alert.evidence} />
             </div>
           )}
 
           {activeTab === 'signals' && (
-            <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+            <div className="glass-panel" style={{ padding: '1.15rem' }}>
               <SignalList signals={alert.detection_signals || []} />
             </div>
           )}
 
           {activeTab === 'audit' && (
-            <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+            <div className="glass-panel" style={{ padding: '1.15rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 Passive Security & Lifecycle Audit
               </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.4rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Created At</span>
-                  <span style={{ color: 'var(--text-main)', fontFamily: 'monospace' }}>{alert.created_at}</span>
+                  <span style={{ color: '#0f172a', fontFamily: 'var(--font-mono)' }}>{alert.created_at}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.4rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Last Updated</span>
-                  <span style={{ color: 'var(--text-main)', fontFamily: 'monospace' }}>{alert.updated_at}</span>
+                  <span style={{ color: '#0f172a', fontFamily: 'var(--font-mono)' }}>{alert.updated_at}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.4rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Assigned Analyst</span>
-                  <span style={{ color: 'var(--text-main)' }}>{alert.assigned_to || 'Unassigned'}</span>
+                  <span style={{ color: '#0f172a', fontWeight: 500 }}>{alert.assigned_to || 'Unassigned'}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.4rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Passive Monitoring Invariant</span>
-                  <span style={{ color: 'var(--success)' }}>Active (Read-Only)</span>
+                  <span style={{ color: '#16a34a', fontWeight: 600 }}>Active (Read-Only)</span>
                 </div>
               </div>
 
               {alert.comments && alert.comments.length > 0 && (
                 <div style={{ marginTop: '0.75rem' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Analyst Notes</span>
+                  <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>Analyst Notes</span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.35rem' }}>
                     {alert.comments.map((c: any, i: number) => (
-                      <div key={i} style={{ background: 'rgba(255,255,255,0.02)', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      <div key={i} style={{ background: '#f8fafc', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.725rem', color: 'var(--text-muted)' }}>
                           <span>{c.author}</span>
                           <span>{c.timestamp ? new Date(c.timestamp).toLocaleString() : ''}</span>
                         </div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', marginTop: '0.2rem' }}>{c.text}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#0f172a', marginTop: '0.2rem' }}>{c.text}</div>
                       </div>
                     ))}
                   </div>

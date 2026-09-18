@@ -30,53 +30,62 @@ export const ThreatRadarView: React.FC<ThreatRadarViewProps> = ({ stats, loading
   const meanRisk = stats.avg_risk_score ?? stats.mean_risk_score ?? 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       {/* Top Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-        <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Alerts Recorded</span>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '0.25rem' }}>
+        <div className="glass-panel" style={{ padding: '1.15rem 1.25rem' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+            Total Alerts Recorded
+          </span>
+          <div style={{ fontSize: '1.65rem', fontWeight: 700, color: '#0f172a', marginTop: '0.25rem', fontFamily: 'var(--font-mono)' }}>
             {stats.total_alerts.toLocaleString()}
           </div>
         </div>
 
-        <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Unresolved Threats</span>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--warning)', marginTop: '0.25rem' }}>
+        <div className="glass-panel" style={{ padding: '1.15rem 1.25rem' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+            Unresolved Threats
+          </span>
+          <div style={{ fontSize: '1.65rem', fontWeight: 700, color: 'var(--warning)', marginTop: '0.25rem', fontFamily: 'var(--font-mono)' }}>
             {unresolved.toLocaleString()}
           </div>
         </div>
 
-        <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Mean Risk Score</span>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary-glow)', marginTop: '0.25rem' }}>
+        <div className="glass-panel" style={{ padding: '1.15rem 1.25rem' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>
+            Mean Risk Score
+          </span>
+          <div style={{ fontSize: '1.65rem', fontWeight: 700, color: 'var(--accent-primary)', marginTop: '0.25rem', fontFamily: 'var(--font-mono)' }}>
             {meanRisk.toFixed(1)} / 100
           </div>
         </div>
       </div>
 
       {/* Distribution Bars */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
         {/* Severity Distribution */}
-        <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '1rem' }}>
+        <div className="glass-panel" style={{ padding: '1.25rem 1.5rem' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>
             Threat Severity Distribution
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {severityEntries.map(([sev, count]) => {
               const pct = (count / maxSeverityCount) * 100;
-              let barColor = 'var(--accent)';
-              if (sev === 'CRITICAL') barColor = 'var(--danger)';
-              else if (sev === 'HIGH') barColor = '#fb923c';
-              else if (sev === 'MEDIUM') barColor = 'var(--warning)';
+              let barColor = 'var(--accent-primary)';
+              if (sev === 'CRITICAL') barColor = 'var(--severity-critical)';
+              else if (sev === 'HIGH') barColor = 'var(--severity-high)';
+              else if (sev === 'MEDIUM') barColor = 'var(--severity-medium)';
+              else if (sev === 'LOW') barColor = 'var(--severity-low)';
 
               return (
                 <div key={sev} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                    <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{sev}</span>
-                    <span style={{ color: 'var(--text-muted)' }}>{count} ({((count / (stats.total_alerts || 1)) * 100).toFixed(0)}%)</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.775rem' }}>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{sev}</span>
+                    <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                      {count} ({((count / (stats.total_alerts || 1)) * 100).toFixed(0)}%)
+                    </span>
                   </div>
-                  <div style={{ height: '8px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
                     <div
                       style={{
                         height: '100%',
@@ -94,11 +103,11 @@ export const ThreatRadarView: React.FC<ThreatRadarViewProps> = ({ stats, loading
         </div>
 
         {/* Status Breakdown */}
-        <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '1rem' }}>
+        <div className="glass-panel" style={{ padding: '1.25rem 1.5rem' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#0f172a', marginBottom: '1rem' }}>
             Investigation Status
           </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
             {statusEntries.map(([status, count]) => (
               <div
                 key={status}
@@ -107,15 +116,15 @@ export const ThreatRadarView: React.FC<ThreatRadarViewProps> = ({ stats, loading
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '0.5rem 0.75rem',
-                  background: 'rgba(255, 255, 255, 0.02)',
+                  background: '#f8fafc',
                   borderRadius: '6px',
                   border: '1px solid var(--border)',
                 }}
               >
-                <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-main)' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#0f172a' }}>
                   {status}
                 </span>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--primary-glow)' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--accent-primary)', fontFamily: 'var(--font-mono)' }}>
                   {count}
                 </span>
               </div>

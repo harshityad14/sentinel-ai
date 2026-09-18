@@ -53,7 +53,7 @@ export const AlertsTable: React.FC<AlertsTableProps> = ({
         <table className="soc-table">
           <thead>
             <tr>
-              <th style={{ width: "100px" }}>Severity</th>
+              <th style={{ width: "90px" }}>Severity</th>
               <th
                 onClick={() => onSort("threat_class")}
                 style={{ cursor: "pointer", userSelect: "none" }}
@@ -99,7 +99,7 @@ export const AlertsTable: React.FC<AlertsTableProps> = ({
             {loading && alerts.length === 0 ? (
               <tr>
                 <td colSpan={8} style={{ textAlign: "center", padding: "3rem" }}>
-                  <span style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                  <span style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
                     Loading real-time security alerts...
                   </span>
                 </td>

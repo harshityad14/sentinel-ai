@@ -1,99 +1,154 @@
 import React from "react";
-import { Shield } from "lucide-react";
+import { Search, Bell } from "lucide-react";
 import { ConnectionIndicator } from "../common/ConnectionIndicator";
 import { WebSocketConnectionStatus } from "../../types/websocket";
 
 interface HeaderProps {
+  activeTabTitle?: string;
   wsStatus: WebSocketConnectionStatus;
   onReconnectWs?: () => void;
   totalAlerts?: number;
   criticalCount?: number;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  onNotificationClick?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
+  activeTabTitle = "Dashboard",
   wsStatus,
   onReconnectWs,
   totalAlerts = 0,
   criticalCount = 0,
+  searchQuery = "",
+  onSearchChange,
+  onNotificationClick,
 }) => {
   return (
     <header
       style={{
-        height: "64px",
-        background: "rgba(10, 13, 20, 0.95)",
-        backdropFilter: "blur(12px)",
-        borderBottom: "1px solid var(--border-subtle)",
+        height: "60px",
+        background: "#ffffff",
+        borderBottom: "1px solid var(--border)",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "0 1.5rem",
+        padding: "0 1.75rem",
         position: "sticky",
         top: 0,
-        zIndex: 40,
+        zIndex: 25,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
-        <div
+      {/* Left: Page Title & Subtitle */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.1rem" }}>
+        <h1
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 0 12px rgba(59, 130, 246, 0.4)",
+            fontSize: "1.125rem",
+            fontWeight: 700,
+            color: "#0f172a",
+            margin: 0,
+            lineHeight: 1.2,
           }}
         >
-          <Shield size={20} color="#fff" />
-        </div>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <span style={{ fontWeight: 700, fontSize: "1.05rem", letterSpacing: "0.02em" }}>
-              SentinelAI
-            </span>
-            <span
-              style={{
-                fontSize: "0.65rem",
-                padding: "0.1rem 0.35rem",
-                borderRadius: 4,
-                background: "rgba(59, 130, 246, 0.15)",
-                color: "var(--accent-primary)",
-                fontWeight: 600,
-                border: "1px solid rgba(59, 130, 246, 0.3)",
-              }}
-            >
-              SOC v1.0
-            </span>
-          </div>
-          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-            Passive Network Threat Detection Platform
-          </span>
-        </div>
+          {activeTabTitle}
+        </h1>
+        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+          Real-time AI-powered threat detection and response system
+        </span>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+      {/* Right Controls: Search, Counters, Notifications, Connection */}
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+        {/* Search Field */}
+        <div style={{ position: "relative", width: "240px" }}>
+          <Search
+            size={15}
+            color="var(--text-muted)"
+            style={{
+              position: "absolute",
+              left: 10,
+              top: "50%",
+              transform: "translateY(-50%)",
+              pointerEvents: "none",
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Search threats, devices..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "0.4rem 0.75rem 0.4rem 2rem",
+              fontSize: "0.8rem",
+              background: "#f8fafc",
+              border: "1px solid var(--border)",
+              borderRadius: "6px",
+            }}
+            aria-label="Search threats and devices"
+          />
+        </div>
+
+        {/* Quick Incidents Summary */}
         <div
           style={{
-            display: "flex",
+            display: "none",
             alignItems: "center",
-            gap: "1rem",
-            fontSize: "0.8rem",
+            gap: "0.85rem",
+            fontSize: "0.775rem",
             color: "var(--text-secondary)",
-            paddingRight: "1rem",
-            borderRight: "1px solid var(--border-subtle)",
+            paddingRight: "0.75rem",
+            borderRight: "1px solid var(--border)",
           }}
+          className="header-summary"
         >
-          <div>
-            Total Incidents: <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>{totalAlerts}</span>
-          </div>
+          <span>
+            Total: <strong style={{ color: "#0f172a" }}>{totalAlerts}</strong>
+          </span>
           {criticalCount > 0 && (
-            <div style={{ color: "var(--severity-critical)", fontWeight: 600 }}>
-              {criticalCount} Critical Active
-            </div>
+            <span style={{ color: "var(--severity-critical)", fontWeight: 600 }}>
+              {criticalCount} Critical
+            </span>
           )}
         </div>
 
+        {/* Notification Bell */}
+        <button
+          onClick={onNotificationClick}
+          aria-label={`Notifications: ${criticalCount} active threats`}
+          title={`${criticalCount} active critical threats`}
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 6,
+            border: "1px solid var(--border)",
+            background: "#ffffff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            color: criticalCount > 0 ? "var(--severity-critical)" : "var(--text-secondary)",
+            position: "relative",
+          }}
+        >
+          <Bell size={16} />
+          {criticalCount > 0 && (
+            <span
+              style={{
+                position: "absolute",
+                top: -2,
+                right: -2,
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: "var(--severity-critical)",
+                border: "2px solid #ffffff",
+              }}
+            />
+          )}
+        </button>
+
+        {/* Live WebSocket / Polling Connection Indicator */}
         <ConnectionIndicator status={wsStatus} onReconnect={onReconnectWs} />
       </div>
     </header>

@@ -14,7 +14,7 @@ interface AlertRowProps {
 export const AlertRow: React.FC<AlertRowProps> = ({ alert, onSelect, isNew = false }) => {
   const riskValue =
     typeof alert.risk_score === "object" && alert.risk_score !== null
-      ? alert.risk_score.score
+      ? (alert.risk_score as any).score || 0
       : typeof alert.risk_score === "number"
       ? alert.risk_score
       : 0;
@@ -42,16 +42,16 @@ export const AlertRow: React.FC<AlertRowProps> = ({ alert, onSelect, isNew = fal
       aria-label={`Alert ${alert.alert_id}: ${alert.threat_class}, Severity ${alert.severity}, Risk ${riskValue}`}
     >
       <td>
-        <Badge severity={alert.severity} />
+        <Badge severity={alert.severity}>{alert.severity}</Badge>
       </td>
       <td>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+          <span style={{ fontWeight: 600, color: "#0f172a" }}>
             {alert.title || alert.threat_class}
           </span>
           <span
             style={{
-              fontSize: "0.725rem",
+              fontSize: "0.7rem",
               color: "var(--text-muted)",
               fontFamily: "var(--font-mono)",
               maxWidth: "180px",
@@ -65,12 +65,20 @@ export const AlertRow: React.FC<AlertRowProps> = ({ alert, onSelect, isNew = fal
         </div>
       </td>
       <td>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.825rem", fontFamily: "var(--font-mono)" }}>
-          <span>{alert.source_ip || "Unknown"}</span>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.35rem",
+            fontSize: "0.8rem",
+            fontFamily: "var(--font-mono)",
+          }}
+        >
+          <span style={{ color: "#0f172a" }}>{alert.source_ip || "Unknown"}</span>
           {alert.destination_ip && (
             <>
-              <ArrowRight size={12} color="var(--text-muted)" />
-              <span>{alert.destination_ip}</span>
+              <ArrowRight size={11} color="var(--text-muted)" />
+              <span style={{ color: "#0f172a" }}>{alert.destination_ip}</span>
             </>
           )}
         </div>
@@ -79,23 +87,30 @@ export const AlertRow: React.FC<AlertRowProps> = ({ alert, onSelect, isNew = fal
         <RiskGauge score={riskValue} />
       </td>
       <td>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.8rem",
+            color: "var(--text-secondary)",
+            fontWeight: 500,
+          }}
+        >
           {(alert.confidence * 100).toFixed(0)}%
         </span>
       </td>
       <td>
         <StatusPill status={alert.status} />
       </td>
-      <td style={{ fontSize: "0.8rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+      <td style={{ fontSize: "0.775rem", color: "var(--text-muted)", whiteSpace: "nowrap" }}>
         {formatDate(alert.last_seen || alert.created_at || "")}
       </td>
       <td style={{ textAlign: "right" }}>
         <button
           className="btn btn-secondary btn-sm"
-          style={{ padding: "0.2rem 0.4rem" }}
+          style={{ padding: "0.2rem 0.4rem", border: "none", background: "transparent" }}
           aria-label={`View details for alert ${alert.alert_id}`}
         >
-          <ChevronRight size={14} />
+          <ChevronRight size={14} color="var(--text-muted)" />
         </button>
       </td>
     </tr>

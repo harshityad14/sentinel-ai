@@ -32,58 +32,50 @@ export const DetectionsTable: React.FC<DetectionsTableProps> = ({ detections, lo
 
   return (
     <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+      <table className="soc-table">
         <thead>
-          <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-            <th style={{ padding: '0.75rem 1rem' }}>Detection ID</th>
-            <th style={{ padding: '0.75rem 1rem' }}>Engine / Model</th>
-            <th style={{ padding: '0.75rem 1rem' }}>Severity</th>
-            <th style={{ padding: '0.75rem 1rem' }}>Confidence</th>
-            <th style={{ padding: '0.75rem 1rem' }}>Source Flow</th>
-            <th style={{ padding: '0.75rem 1rem' }}>MITRE Technique</th>
-            <th style={{ padding: '0.75rem 1rem' }}>Timestamp</th>
+          <tr>
+            <th>Detection ID</th>
+            <th>Engine / Model</th>
+            <th>Severity</th>
+            <th>Confidence</th>
+            <th>Source Flow</th>
+            <th>MITRE Technique</th>
+            <th>Timestamp</th>
           </tr>
         </thead>
         <tbody>
           {detections.map((d) => (
-            <tr
-              key={d.detection_id}
-              style={{
-                borderBottom: '1px solid var(--border)',
-                transition: 'background 0.15s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-            >
-              <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
+            <tr key={d.detection_id}>
+              <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
                 {d.detection_id.slice(0, 8)}...
               </td>
-              <td style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>
+              <td style={{ fontWeight: 600, color: '#0f172a' }}>
                 {(d as any).detector_name || d.detector_type}
               </td>
-              <td style={{ padding: '0.75rem 1rem' }}>
+              <td>
                 <Badge variant={typeof d.severity === 'string' ? d.severity.toLowerCase() : 'info'}>
                   {d.severity}
                 </Badge>
               </td>
-              <td style={{ padding: '0.75rem 1rem' }}>
-                <span style={{ fontWeight: 600, color: 'var(--accent)' }}>
+              <td>
+                <span style={{ fontWeight: 600, color: '#1d4ed8', fontFamily: 'var(--font-mono)' }}>
                   {(d.confidence * 100).toFixed(1)}%
                 </span>
               </td>
-              <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
-                {d.flow_id.slice(0, 10)}...
+              <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                {d.flow_id ? `${d.flow_id.slice(0, 10)}...` : '-'}
               </td>
-              <td style={{ padding: '0.75rem 1rem' }}>
+              <td>
                 {(d as any).mitre_technique ? (
-                  <code style={{ color: 'var(--primary-glow)', background: 'rgba(99, 102, 241, 0.1)', padding: '0.1rem 0.3rem', borderRadius: '3px' }}>
+                  <code style={{ color: '#1d4ed8', background: '#eff6ff', border: '1px solid #bfdbfe', padding: '0.1rem 0.35rem', borderRadius: '3px', fontSize: '0.75rem' }}>
                     {(d as any).mitre_technique}
                   </code>
                 ) : (
                   <span style={{ color: 'var(--text-muted)' }}>-</span>
                 )}
               </td>
-              <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+              <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
                 {new Date(d.detection_timestamp || (d as any).created_at || new Date()).toLocaleTimeString()}
               </td>
             </tr>

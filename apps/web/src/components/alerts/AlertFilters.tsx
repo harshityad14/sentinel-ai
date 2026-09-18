@@ -17,18 +17,18 @@ export const AlertFilters: React.FC<AlertFiltersProps> = ({
     <div
       className="glass-panel"
       style={{
-        padding: "1rem 1.25rem",
-        marginBottom: "1.25rem",
+        padding: "0.85rem 1.15rem",
+        marginBottom: "1rem",
         display: "flex",
         flexDirection: "column",
-        gap: "0.85rem",
+        gap: "0.75rem",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
         {/* Search bar */}
-        <div style={{ position: "relative", flex: "1 1 240px" }}>
+        <div style={{ position: "relative", flex: "1 1 220px" }}>
           <Search
-            size={16}
+            size={15}
             color="var(--text-muted)"
             style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }}
           />
@@ -91,7 +91,7 @@ export const AlertFilters: React.FC<AlertFiltersProps> = ({
           title="Reset all filters"
           style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
         >
-          <RotateCcw size={14} />
+          <RotateCcw size={13} />
           <span>Reset</span>
         </button>
       </div>
@@ -106,10 +106,10 @@ export const AlertFilters: React.FC<AlertFiltersProps> = ({
           gap: "0.75rem",
           paddingTop: "0.5rem",
           borderTop: "1px solid var(--border-subtle)",
-          fontSize: "0.8rem",
+          fontSize: "0.775rem",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
           <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>Quick:</span>
           {[
             { label: "Unresolved", status: "ACTIVE" },
@@ -121,7 +121,7 @@ export const AlertFilters: React.FC<AlertFiltersProps> = ({
               key={idx}
               onClick={() => onFilterChange(chip)}
               className="btn btn-secondary btn-sm"
-              style={{ fontSize: "0.75rem", padding: "0.2rem 0.5rem" }}
+              style={{ fontSize: "0.725rem", padding: "0.15rem 0.45rem" }}
             >
               {chip.label}
             </button>
@@ -138,10 +138,10 @@ export const AlertFilters: React.FC<AlertFiltersProps> = ({
             step="5"
             value={filters.min_risk || 0}
             onChange={(e) => onFilterChange({ min_risk: Number(e.target.value) || undefined })}
-            style={{ width: "90px", accentColor: "var(--accent-primary)" }}
+            style={{ width: "85px", accentColor: "var(--accent-primary)" }}
             aria-label="Minimum risk score threshold"
           />
-          <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600, minWidth: "1.5rem" }}>
+          <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600, minWidth: "1.5rem", color: "#0f172a" }}>
             {filters.min_risk || 0}
           </span>
         </div>

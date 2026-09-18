@@ -38,18 +38,18 @@ export const FlowsTable: React.FC<FlowsTableProps> = ({ flows, loading, error })
 
   return (
     <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+      <table className="soc-table">
         <thead>
-          <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-            <th style={{ padding: '0.75rem 1rem' }}>Flow ID</th>
-            <th style={{ padding: '0.75rem 1rem' }}>Protocol</th>
-            <th style={{ padding: '0.75rem 1rem' }}>Source</th>
-            <th style={{ padding: '0.75rem 1rem' }}>Destination</th>
-            <th style={{ padding: '0.75rem 1rem' }}>Packets</th>
-            <th style={{ padding: '0.75rem 1rem' }}>Bytes</th>
-            <th style={{ padding: '0.75rem 1rem' }}>Duration</th>
-            <th style={{ padding: '0.75rem 1rem' }}>TCP Flags</th>
-            <th style={{ padding: '0.75rem 1rem' }}>End Time</th>
+          <tr>
+            <th>Flow ID</th>
+            <th>Protocol</th>
+            <th>Source</th>
+            <th>Destination</th>
+            <th>Packets</th>
+            <th>Bytes</th>
+            <th>Duration</th>
+            <th>TCP Flags</th>
+            <th>End Time</th>
           </tr>
         </thead>
         <tbody>
@@ -65,53 +65,46 @@ export const FlowsTable: React.FC<FlowsTableProps> = ({ flows, loading, error })
                 : flow.tcp_flags || '-';
 
             return (
-              <tr
-                key={flow.flow_id}
-                style={{
-                  borderBottom: '1px solid var(--border)',
-                  transition: 'background 0.15s ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-              >
-                <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
+              <tr key={flow.flow_id}>
+                <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
                   {flow.flow_id.slice(0, 8)}...
                 </td>
-                <td style={{ padding: '0.75rem 1rem' }}>
+                <td>
                   <span
                     style={{
-                      padding: '0.2rem 0.5rem',
+                      padding: '0.15rem 0.45rem',
                       borderRadius: '4px',
-                      fontSize: '0.75rem',
+                      fontSize: '0.725rem',
                       fontWeight: 600,
-                      background: protoStr === 'TCP' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                      color: protoStr === 'TCP' ? '#60a5fa' : '#34d399',
+                      background: protoStr === 'TCP' ? '#eff6ff' : '#f0fdf4',
+                      color: protoStr === 'TCP' ? '#1d4ed8' : '#16a34a',
+                      border: protoStr === 'TCP' ? '1px solid #bfdbfe' : '1px solid #bbf7d0',
                     }}
                   >
                     {protoStr}
                   </span>
                 </td>
-                <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace' }}>
+                <td style={{ fontFamily: 'var(--font-mono)', color: '#0f172a' }}>
                   {flow.source_ip}:{flow.source_port}
                 </td>
-                <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace' }}>
+                <td style={{ fontFamily: 'var(--font-mono)', color: '#0f172a' }}>
                   {flow.destination_ip}:{flow.destination_port}
                 </td>
-                <td style={{ padding: '0.75rem 1rem' }}>
+                <td style={{ fontFamily: 'var(--font-mono)' }}>
                   {pkts.toLocaleString()}
                 </td>
-                <td style={{ padding: '0.75rem 1rem' }}>
+                <td style={{ fontFamily: 'var(--font-mono)' }}>
                   {bytes > 1024 * 1024
                     ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
                     : `${(bytes / 1024).toFixed(1)} KB`}
                 </td>
-                <td style={{ padding: '0.75rem 1rem' }}>
+                <td style={{ fontFamily: 'var(--font-mono)' }}>
                   {duration.toFixed(2)}s
                 </td>
-                <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', color: 'var(--text-muted)' }}>
+                <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
                   {flagsStr}
                 </td>
-                <td style={{ padding: '0.75rem 1rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                <td style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
                   {new Date(endTime).toLocaleTimeString()}
                 </td>
               </tr>
