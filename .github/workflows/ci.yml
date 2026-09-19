@@ -27,7 +27,7 @@ jobs:
       - name: Install Lint & SAST Tools
         run: |
           python -m pip install --upgrade pip
-          pip install ruff bandit pip-audit
+          pip install ruff==0.16.8 bandit pip-audit
 
       - name: Ruff Lint Check
         run: |
@@ -85,7 +85,6 @@ jobs:
           pip install -e packages/flow_engine
           pip install -e packages/features
           pip install -e packages/detection
-          pip install -e packages/correlation
           pip install -e packages/streaming
           pip install -e packages/ai_agent
           pip install -e apps/api
@@ -93,19 +92,19 @@ jobs:
 
       - name: Run Backend Unit Tests (Phases 0–7 & 9)
         env:
-          PYTHONPATH: packages/models:packages/ingestion:packages/flow_engine:packages/features:packages/detection:packages/correlation:packages/streaming:packages/ai_agent:apps/api
+          PYTHONPATH: packages/models:packages/ingestion:packages/flow_engine:packages/features:packages/detection:packages/streaming:packages/ai_agent:apps/api
         run: |
           python -m unittest discover -s tests/unit
 
       - name: Run Phase 8 AI Evaluation Benchmarks
         env:
-          PYTHONPATH: packages/models:packages/ingestion:packages/flow_engine:packages/features:packages/detection:packages/correlation:packages/streaming:packages/ai_agent:apps/api
+          PYTHONPATH: packages/models:packages/ingestion:packages/flow_engine:packages/features:packages/detection:packages/streaming:packages/ai_agent:apps/api
         run: |
           python -m unittest tests/benchmarks/test_ai_evaluation.py
 
       - name: Run Passive Security Invariants Audit
         env:
-          PYTHONPATH: packages/models:packages/ingestion:packages/flow_engine:packages/features:packages/detection:packages/correlation:packages/streaming:packages/ai_agent:apps/api
+          PYTHONPATH: packages/models:packages/ingestion:packages/flow_engine:packages/features:packages/detection:packages/streaming:packages/ai_agent:apps/api
         run: |
           python -m unittest tests/unit/test_passive_security.py
 
@@ -154,7 +153,7 @@ jobs:
 
       - name: Build Web Container Image
         run: |
-          docker build -t sentinel-web:local -f apps/web/Dockerfile .
+          docker build -t sentinel-web:local -f apps/web/Dockerfile apps/web
 
       - name: Build Streaming Worker Container Image
         run: |
@@ -190,6 +189,8 @@ jobs:
           fetch-depth: 0
 
       - name: Validate Docker Compose Configuration
+        env:
+          POSTGRES_PASSWORD: "ci_validation_dummy_password_min16"
         run: |
           docker compose config
 
